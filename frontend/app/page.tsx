@@ -5,7 +5,7 @@ import { TaskList } from '@/components/task-list'
 import { AuthForms } from '@/components/auth-forms'
 import { authClient } from '@/lib/auth'
 import { User } from '@/types'
-import { Button } from '@/components/ui/button'
+import { Navigation } from '@/components/Navigation'
 
 export default function Home() {
   const [loggedIn, setLoggedIn] = useState(authClient.isAuthenticated())
@@ -33,15 +33,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Todo App</h1>
-          {user && <p className="text-muted-foreground mt-2">Welcome, {user.username}!</p>}
-        </div>
-        <Button onClick={handleLogout} variant="outline">
-          Logout
-        </Button>
-      </header>
+      <Navigation user={user || undefined} onLogout={handleLogout} />
       <TaskList />
     </div>
   )

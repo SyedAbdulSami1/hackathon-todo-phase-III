@@ -1,0 +1,143 @@
+{
+  "chat_skills": {
+    "version": "1.0.0",
+    "description": "Comprehensive set of skills for OpenAI chat applications",
+    "skills": {
+      "conversation_management": {
+        "category": "core",
+        "description": "Manage chat conversations and history",
+        "functions": [
+          "initialize_conversation",
+          "add_message",
+          "get_conversation_summary",
+          "clear_conversation",
+          "export_conversation"
+        ]
+      },
+      "message_processing": {
+        "category": "core",
+        "description": "Process and format messages",
+        "functions": [
+          "parse_message",
+          "format_for_api",
+          "handle_multimodal",
+          "validate_message"
+        ]
+      },
+      "context_management": {
+        "category": "advanced",
+        "description": "Maintain conversation context within limits",
+        "functions": [
+          "manage_token_limits",
+          "summarize_long_conversations",
+          "extract_key_information",
+          "maintain_context_window"
+        ]
+      },
+      "response_generation": {
+        "category": "core",
+        "description": "Generate appropriate responses",
+        "functions": [
+          "generate_response",
+          "adjust_tone",
+          "handle_constraints",
+          "format_output"
+        ]
+      },
+      "function_calling": {
+        "category": "advanced",
+        "description": "Use OpenAI function calling capabilities",
+        "functions": [
+          "define_function_schema",
+          "execute_function",
+          "handle_function_results",
+          "create_dynamic_functions"
+        ]
+      },
+      "tool_integration": {
+        "category": "advanced",
+        "description": "Integrate external tools and APIs",
+        "functions": [
+          "web_search",
+          "file_operations",
+          "database_queries",
+          "api_integration"
+        ]
+      },
+      "guardrails": {
+        "category": "safety",
+        "description": "Implement content safety and guardrails",
+        "functions": [
+          "content_filtering",
+          "prompt_injection_prevention",
+          "output_validation",
+          "safety_checks"
+        ]
+      },
+      "multi_agent": {
+        "category": "advanced",
+        "description": "Manage multiple AI agents",
+        "functions": [
+          "create_agent",
+          "agent_handoff",
+          "agent_collaboration",
+          "agent_orchestration"
+        ]
+      },
+      "code_assistant": {
+        "category": "specialized",
+        "description": "Help with code-related tasks",
+        "functions": [
+          "code_generation",
+          "code_explanation",
+          "bug_fixing",
+          "optimization"
+        ]
+      },
+      "creative_writing": {
+        "category": "specialized",
+        "description": "Assist with creative content",
+        "functions": [
+          "story_generation",
+          "poetry_writing",
+          "marketing_copy",
+          "technical_writing"
+        ]
+      },
+      "data_analysis": {
+        "category": "specialized",
+        "description": "Analyze and interpret data",
+        "functions": [
+          "data_interpretation",
+          "visualization_suggestions",
+          "statistical_analysis",
+          "trend_detection"
+        ]
+      },
+      "research_assistant": {
+        "category": "specialized",
+        "description": "Conduct research tasks",
+        "functions": [
+          "information_gathering",
+          "source_verification",
+          "summarization",
+          "citation_generation"
+        ]
+      }
+    },
+    "best_practices": {
+      "token_management": "Monitor and manage token usage to control costs",
+      "error_handling": "Implement robust error handling for API failures",
+      "security": "Validate inputs and sanitize outputs to prevent injection",
+      "performance": "Use async operations and caching for better performance",
+      "user_experience": "Provide typing indicators and streaming responses",
+      "testing": "Implement comprehensive testing for all skills"
+    },
+    "api_requirements": {
+      "openai_api": "Required for core chat functionality",
+      "weather_api": "Optional for weather skill",
+      "search_api": "Optional for research skill",
+      "database": "Optional for data storage"
+    }
+  }
+}

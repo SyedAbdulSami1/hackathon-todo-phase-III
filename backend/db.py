@@ -1,8 +1,10 @@
 from sqlmodel import SQLModel, create_engine, Session
 import os
 
-from sqlmodel import SQLModel, create_engine, Session
-import os
+# Import all models to register them with SQLModel
+from .models import User, Task  # noqa: F401 - existing models
+from .models.conversation import Conversation  # noqa: F401
+from .models.message import Message  # noqa: F401
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -22,3 +24,8 @@ def get_session():
     """Dependency to get database session"""
     with Session(engine) as session:
         yield session
+
+
+def create_db_and_tables():
+    """Create database tables for all registered models"""
+    SQLModel.metadata.create_all(engine)

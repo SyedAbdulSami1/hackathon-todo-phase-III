@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: AI Chatbot API for Todo Application
+  description: API for natural language interaction with todo management system
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Process natural language input and return appropriate response
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user making the request
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Successful response from the AI chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: Bad request - invalid input format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - invalid or missing JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user_id mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Natural language request from the user
+          example: "Add a task to buy groceries for tomorrow"
+        conversation_id:
+          type: string
+          description: Optional ID of existing conversation to continue
+          example: "conv_abc123xyz"
+        context:
+          type: object
+          description: Optional additional context for the request
+          example:
+            timezone: "UTC-5"
+            locale: "en-US"
+    ChatResponse:
+      type: object
+      required:
+        - response
+        - conversation_id
+        - message_id
+      properties:
+        response:
+          type: string
+          description: AI-generated response to the user's request
+          example: "I've added the task 'buy groceries' to your list for tomorrow."
+        conversation_id:
+          type: string
+          description: ID of the conversation
+          example: "conv_abc123xyz"
+        message_id:
+          type: string
+          description: ID of the current message
+          example: "msg_def456uvw"
+        tool_used:
+          type: string
+          description: Name of the MCP tool used to fulfill the request
+          example: "todo_create_tool"
+        actions_taken:
+          type: array
+          description: List of actions performed as result of the request
+          items:
+            type: string
+          example: ["Created task 'buy groceries'", "Scheduled for tomorrow"]
+        suggestions:
+          type: array
+          description: Optional follow-up suggestions for the user
+          items:
+            type: string
+          example: ["Would you like to set a reminder?", "Do you want to add more tasks?"]
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "INVALID_INPUT"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request format is invalid"
+        details:
+          type: object
+          description: Optional additional error details

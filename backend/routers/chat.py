@@ -77,10 +77,20 @@ async def chat_endpoint(
                     detail="Forbidden: You can only access your own conversations"
                 )
 
-        # Process the user's message using the agent
-        result = agent.process_request(request.message)
+        # 1. Fetch conversation history from database (Requirement #10 Step 2)
+        history_messages = []
+        if request.conversation_id:
+            db_history = session.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.timestamp).all()
+            for msg in db_history:
+                history_messages.append({
+                    "role": msg.sender_type.value,
+                    "content": msg.content
+                })
 
-        # Create user message record
+        # 2. Build array for agent: history + new message (Requirement #10 Step 3)
+        # Note: ChatAgent handles adding the new message internally in our refined version
+
+        # 3. Store user message in database (Requirement #10 Step 4)
         user_message = Message(
             conversation_id=conversation_id,
             sender_type=SenderType.USER,
@@ -88,8 +98,12 @@ async def chat_endpoint(
             message_type="text"
         )
         session.add(user_message)
+        session.commit()
 
-        # Create assistant message record
+        # 4. Run agent with history context (Requirement #10 Step 5)
+        result = agent.process_request(request.message, conversation_context=history_messages)
+
+        # 5. Store assistant response in database (Requirement #10 Step 7)
         assistant_message = Message(
             conversation_id=conversation_id,
             sender_type=SenderType.ASSISTANT,
@@ -107,16 +121,15 @@ async def chat_endpoint(
         session.add(conversation)
         session.commit()
 
-        # Construct response
-        response = ChatResponse(
-            response=result["response"],
+        # 6. Return response with tool_calls (Requirement #10 Step 8)
+        # Requirement #7 Response format: conversation_id, response, tool_calls
+        return ChatResponse(
             conversation_id=str(conversation_id),
+            response=result["response"],
+            tool_calls=result.get("tool_calls", []),
             message_id=str(assistant_message.id),
-            tool_used=result.get("tool_used"),
             actions_taken=result.get("actions_taken", [])
         )
-
-        return response
 
     except HTTPException:
         # Re-raise HTTP exceptions

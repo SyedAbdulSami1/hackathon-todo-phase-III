@@ -7,12 +7,12 @@ from models import Task
 from db import engine
 
 
-class TodoCreateMCPTool(BaseMCPTool):
+class AddTaskMCPTool(BaseMCPTool):
     """MCP tool to create new todo tasks."""
 
     @property
     def name(self) -> str:
-        return "todo_create_tool"
+        return "add_task"
 
     @property
     def description(self) -> str:

@@ -13,11 +13,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     """Response model for chat endpoint."""
-    response: str
     conversation_id: str
+    response: str
+    tool_calls: List[dict] = []  # Requirement #7: tool_calls (array)
     message_id: str
-    tool_used: Optional[str] = None
-    actions_taken: List[str]
+    actions_taken: List[str] = []
 
 
 class ChatHistoryResponse(BaseModel):

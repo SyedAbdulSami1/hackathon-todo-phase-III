@@ -7,12 +7,12 @@ from models import Task
 from db import engine
 
 
-class TodoCompleteMCPTool(BaseMCPTool):
+class CompleteTaskMCPTool(BaseMCPTool):
     """MCP tool to mark tasks as complete or incomplete."""
 
     @property
     def name(self) -> str:
-        return "todo_complete_tool"
+        return "complete_task"
 
     @property
     def description(self) -> str:

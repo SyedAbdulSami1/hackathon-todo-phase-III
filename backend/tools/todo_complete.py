@@ -1,10 +1,10 @@
 """MCP tool for marking tasks as complete/incomplete."""
 
 from typing import Any, Dict
-from backend.tools.base import BaseMCPTool
+from tools.base import BaseMCPTool
 from sqlmodel import Session
-from backend.models import Task
-from backend.db import engine
+from models import Task
+from db import engine
 
 
 class TodoCompleteMCPTool(BaseMCPTool):

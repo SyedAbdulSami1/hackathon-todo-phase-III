@@ -4,7 +4,7 @@ import traceback
 from typing import Callable, Awaitable
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
-from backend.exceptions.chat import ChatException
+from exceptions.chat import ChatException
 
 
 async def chat_error_handler(request: Request, call_next: Callable[[Request], Awaitable]):

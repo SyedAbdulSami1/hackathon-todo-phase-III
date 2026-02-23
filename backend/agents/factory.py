@@ -1,9 +1,9 @@
 """Factory for creating and managing AI agents."""
 
 from typing import Optional
-from backend.agents.config import AgentConfig
-from backend.agents.chat_agent import ChatAgent
-from backend.agents.tool_binder import ToolBinder
+from agents.config import AgentConfig
+from agents.chat_agent import ChatAgent
+from agents.tool_binder import ToolBinder
 
 
 class AgentFactory:

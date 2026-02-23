@@ -8,18 +8,23 @@ import { User } from '@/types'
 import { Navigation } from '@/components/Navigation'
 
 export default function Home() {
-  const [loggedIn, setLoggedIn] = useState(authClient.isAuthenticated())
+  const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    if (loggedIn) {
+    setIsMounted(true)
+    const isAuthenticated = authClient.isAuthenticated()
+    setLoggedIn(isAuthenticated)
+
+    if (isAuthenticated) {
       const fetchUser = async () => {
         const currentUser = await authClient.getCurrentUser()
         setUser(currentUser)
       }
       fetchUser()
     }
-  }, [loggedIn])
+  }, [])
 
   const handleLogout = () => {
     authClient.logout()
@@ -27,8 +32,16 @@ export default function Home() {
     setUser(null)
   }
 
+  if (!isMounted) {
+    return null
+  }
+
   if (!loggedIn) {
-    return <AuthForms onSuccess={() => setLoggedIn(true)} />
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <AuthForms onSuccess={() => setLoggedIn(true)} />
+      </div>
+    )
   }
 
   return (

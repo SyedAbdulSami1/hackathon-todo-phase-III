@@ -2,8 +2,8 @@
 
 from typing import List, Optional
 from sqlmodel import Session, select
-from backend.models.conversation import Conversation
-from backend.models.message import Message
+from models.conversation import Conversation
+from models.message import Message
 from datetime import datetime
 
 

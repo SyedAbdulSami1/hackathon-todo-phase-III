@@ -1,8 +1,8 @@
 """Tool binder for connecting the AI agent with MCP tools."""
 
 from typing import Dict, Any
-from backend.agents.chat_agent import ChatAgent
-from backend.tools.registry import tool_registry
+from agents.chat_agent import ChatAgent
+from tools.registry import tool_registry
 
 
 class ToolBinder:

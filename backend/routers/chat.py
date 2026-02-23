@@ -4,25 +4,22 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import Dict, Any
 from uuid import uuid4
 from sqlmodel import Session
-from backend.schemas.chat import ChatRequest, ChatResponse
-from backend.db import get_session, engine
+from schemas.chat import ChatRequest, ChatResponse
+from db import get_session, engine
 
 # Handle model imports with fallback for testing
 try:
-    from backend.models.conversation import Conversation
-    from backend.models.message import Message, SenderType
-    from backend.models import User
+    from models.conversation import Conversation
+    from models.message import Message, SenderType
+    from models import User
 except ImportError:
     from models.conversation import Conversation
     from models.message import Message, SenderType
     from models import User
 
-from backend.main import get_chat_agent
 from dependencies.auth import get_current_user
 
-
 router = APIRouter()
-
 
 @router.post("/{user_id}/chat", response_model=ChatResponse)
 async def chat_endpoint(
@@ -33,16 +30,14 @@ async def chat_endpoint(
 ):
     """
     Process natural language input and return appropriate response.
-
-    Args:
-        user_id: The ID of the user making the request (must match authenticated user)
-        request: The chat request containing the message and optional conversation ID
-        current_user: The authenticated user (from JWT token)
-
-    Returns:
-        ChatResponse containing the AI response and metadata
     """
     try:
+        # Import inside function to avoid circular dependency
+        try:
+            from main import get_chat_agent
+        except ImportError:
+            from main import get_chat_agent
+
         # Verify that the user_id in the path matches the authenticated user
         # This is a simplified check - in a real implementation, you'd compare with user.id
         if str(current_user.id) != user_id:

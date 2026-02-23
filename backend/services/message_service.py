@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 from sqlmodel import Session, select
-from backend.models.message import Message, SenderType
+from models.message import Message, SenderType
 from datetime import datetime
 
 

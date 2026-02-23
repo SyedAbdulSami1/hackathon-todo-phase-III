@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from typing import List, Optional
 from models import (
     Task, TaskCreate, TaskUpdate, TaskResponse,
-    User
+    User, TaskStatus, TaskFilter
 )
 from db import get_session
 from dependencies.auth import get_current_active_user
@@ -32,7 +32,8 @@ def create_task(
 def read_tasks(
     skip: int = 0,
     limit: int = 100,
-    status: Optional[str] = None,
+    status: Optional[TaskStatus] = None,
+    search: Optional[str] = None,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
@@ -41,6 +42,12 @@ def read_tasks(
 
     if status:
         query = query.where(Task.status == status)
+
+    if search:
+        query = query.where(
+            (Task.title.ilike(f"%{search}%")) |
+            (Task.description.ilike(f"%{search}%"))
+        )
 
     tasks = session.exec(query.offset(skip).limit(limit)).all()
     return tasks
@@ -121,7 +128,7 @@ def delete_task(
 @router.patch("/{task_id}/status")
 def update_task_status(
     task_id: int,
-    status: str,
+    status: TaskStatus,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):

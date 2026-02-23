@@ -1,12 +1,12 @@
 """Registry for MCP tools in the AI Chatbot feature."""
 
 from typing import Dict, List
-from backend.tools.base import BaseMCPTool
-from backend.tools.todo_create import TodoCreateMCPTool
-from backend.tools.todo_update import TodoUpdateMCPTool
-from backend.tools.todo_delete import TodoDeleteMCPTool
-from backend.tools.todo_search import TodoSearchMCPTool
-from backend.tools.todo_complete import TodoCompleteMCPTool
+from tools.base import BaseMCPTool
+from tools.todo_create import TodoCreateMCPTool
+from tools.todo_update import TodoUpdateMCPTool
+from tools.todo_delete import TodoDeleteMCPTool
+from tools.todo_search import TodoSearchMCPTool
+from tools.todo_complete import TodoCompleteMCPTool
 
 
 class MCPToolRegistry:

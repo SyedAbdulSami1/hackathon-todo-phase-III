@@ -2,8 +2,8 @@
 
 import json
 from typing import Dict, Any, List, Optional
-from backend.agents.config import AgentConfig
-from backend.tools.registry import tool_registry
+from agents.config import AgentConfig
+from tools.registry import tool_registry
 
 
 class ChatAgent:

@@ -1,20 +1,28 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ChatProvider } from '../../contexts/ChatContext';
 import ChatKitWrapper from '../../components/ChatKitWrapper';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { authClient } from '../../lib/auth';
 
 export default function ChatPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-    }
-  }, [status, router]);
+    // Check authentication on mount
+    const checkAuth = () => {
+      const isAuthenticated = authClient.isAuthenticated();
+      if (!isAuthenticated) {
+        setStatus('unauthenticated');
+        router.push('/login');
+      } else {
+        setStatus('authenticated');
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   if (status === 'loading') {
     return (

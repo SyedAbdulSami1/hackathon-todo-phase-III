@@ -1,11 +1,14 @@
+import os
 from dotenv import load_dotenv
+
+# Load environment variables before importing other modules
 load_dotenv()
 
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, tasks, chat
 from db import create_db_and_tables
+from contextlib import asynccontextmanager
 
 # Initialize the agent instance to be reused
 chat_agent = None
@@ -39,7 +42,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (Local, Vercel, etc.)
+    allow_origins=[os.getenv("CORS_ORIGINS", "*")],  # Allows all origins (Local, Vercel, etc.)
     allow_credentials=False,  # Set to False to allow "*" wildcard (standard for Bearer tokens)
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,7 +55,7 @@ app.include_router(chat.router, prefix="/api", tags=["chat"])
 
 @app.get("/")
 async def root():
-    return {"message": "Hello from the RELOADED Server!"}
+    return {"message": "Hello from the Todo Server!"}
 
 @app.get("/health")
 async def health_check():

@@ -2,10 +2,10 @@
 
 from typing import Dict, Any, Optional
 from sqlmodel import Session
-from backend.services.conversation_service import ConversationService
-from backend.services.message_service import MessageService
-from backend.models.conversation import Conversation
-from backend.models.message import Message, SenderType
+from services.conversation_service import ConversationService
+from services.message_service import MessageService
+from models.conversation import Conversation
+from models.message import Message, SenderType
 
 
 class ConversationPersistence:

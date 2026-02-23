@@ -1,10 +1,10 @@
 """MCP tool for searching todo tasks."""
 
 from typing import Any, Dict, List
-from backend.tools.base import BaseMCPTool
+from tools.base import BaseMCPTool
 from sqlmodel import Session, select
-from backend.models import Task
-from backend.db import engine
+from models import Task
+from db import engine
 
 
 class TodoSearchMCPTool(BaseMCPTool):

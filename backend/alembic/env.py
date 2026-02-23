@@ -21,9 +21,9 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 # Import our models
-from backend.db import SQLModel
-from backend.models.conversation import Conversation
-from backend.models.message import Message
+from db import SQLModel
+from models.conversation import Conversation
+from models.message import Message
 
 # Set target metadata
 target_metadata = SQLModel.metadata

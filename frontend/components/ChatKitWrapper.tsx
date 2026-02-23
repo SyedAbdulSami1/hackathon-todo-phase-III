@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
 import { useChat } from '../contexts/ChatContext';
 import { sendChatMessage, getConversationHistory, getUserConversations } from '../lib/chat-api';
+import { authClient } from '../lib/auth';
 
 interface Message {
   id: string;
@@ -20,18 +20,24 @@ interface Conversation {
 }
 
 const ChatKitWrapper: React.FC = () => {
-  const { data: session } = useSession();
+  const [user, setUser] = useState<any>(null);
   const { state, dispatch } = useChat();
   const [inputValue, setInputValue] = useState<string>('');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load user conversations on mount
+  // Load user on mount
   useEffect(() => {
-    if (session?.user?.id) {
+    const currentUser = authClient.getUser();
+    setUser(currentUser);
+  }, []);
+
+  // Load user conversations when user is available
+  useEffect(() => {
+    if (user?.id) {
       loadConversations();
     }
-  }, [session]);
+  }, [user]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -43,10 +49,10 @@ const ChatKitWrapper: React.FC = () => {
   };
 
   const loadConversations = async () => {
-    if (!session?.user?.id) return;
+    if (!user?.id) return;
 
     try {
-      const userConversations = await getUserConversations(session.user.id.toString());
+      const userConversations = await getUserConversations(user.id.toString());
       setConversations(userConversations);
     } catch (error) {
       console.error('Failed to load conversations:', error);
@@ -54,11 +60,11 @@ const ChatKitWrapper: React.FC = () => {
   };
 
   const loadConversation = async (convId: string) => {
-    if (!session?.user?.id) return;
+    if (!user?.id) return;
 
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const history = await getConversationHistory(session.user.id.toString(), convId);
+      const history = await getConversationHistory(user.id.toString(), convId);
 
       // Transform the history to our internal format
       const transformedMessages: Message[] = history.messages.map((msg: any) => ({
@@ -79,7 +85,7 @@ const ChatKitWrapper: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || state.isLoading || !session?.user?.id) return;
+    if (!inputValue.trim() || state.isLoading || !user?.id) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -95,7 +101,7 @@ const ChatKitWrapper: React.FC = () => {
 
     try {
       const response = await sendChatMessage(
-        session.user.id.toString(),
+        user.id.toString(),
         inputValue,
         state.currentConversationId || undefined
       );

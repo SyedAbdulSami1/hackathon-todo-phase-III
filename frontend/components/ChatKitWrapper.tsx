@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../contexts/ChatContext';
-import { sendChatMessage, getConversationHistory, getUserConversations } from '../lib/chatApi';
+import { sendChatMessage, getConversationHistory, getUserConversations } from '../lib/chatapi';
 import { authClient } from '../lib/auth';
 
 interface Message {

@@ -44,6 +44,10 @@ Thumbs.db
 # Environment variables
 .env*
 !.env.example
+.env
+.env.template
+.env.local.example
+.env.local
 
 # Node
 node_modules/

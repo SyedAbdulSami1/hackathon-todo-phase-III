@@ -2,9 +2,27 @@ from sqlmodel import SQLModel, create_engine, Session
 import os
 
 # Import all models to register them with SQLModel
-from .models import User, Task  # noqa: F401 - existing models
-from .models.conversation import Conversation  # noqa: F401
-from .models.message import Message  # noqa: F401
+# Handle different possible locations of the models
+try:
+    # Standard app import
+    from .models import User as User_, Task as Task_  # Renamed to avoid conflicts
+    from .models.conversation import Conversation
+    from .models.message import Message
+except ImportError:
+    try:
+        # Alternative import structure
+        from models import User as User_, Task as Task_
+        from models.conversation import Conversation
+        from models.message import Message
+    except ImportError:
+        # For testing purposes when running from different contexts
+        try:
+            from backend.models import User as User_, Task as Task_
+            from backend.models.conversation import Conversation
+            from backend.models.message import Message
+        except ImportError:
+            # Last resort: import the base models only
+            from .models import User as User_, Task as Task_
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

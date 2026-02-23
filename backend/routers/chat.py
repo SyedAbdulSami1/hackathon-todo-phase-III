@@ -6,11 +6,19 @@ from uuid import uuid4
 from sqlmodel import Session
 from backend.schemas.chat import ChatRequest, ChatResponse
 from backend.db import get_session, engine
-from backend.models.conversation import Conversation
-from backend.models.message import Message, SenderType
+
+# Handle model imports with fallback for testing
+try:
+    from backend.models.conversation import Conversation
+    from backend.models.message import Message, SenderType
+    from backend.models import User
+except ImportError:
+    from models.conversation import Conversation
+    from models.message import Message, SenderType
+    from models import User
+
 from backend.main import get_chat_agent
 from dependencies.auth import get_current_user
-from models import User
 
 
 router = APIRouter()

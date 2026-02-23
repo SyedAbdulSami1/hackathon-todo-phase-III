@@ -1,0 +1,9 @@
+# Frontend testing dependencies would normally be in package.json
+# This is just a reference file
+jest
+@testing-library/react
+@testing-library/jest-dom
+@types/jest
+ts-jest
+jsdom
+identity-obj-proxy

@@ -14,9 +14,9 @@ class BaseSQLModel(SQLModel):
 
 # Task Status Enum
 class TaskStatus(str, Enum):
-    PENDING = "PENDING"
-    IN_PROGRESS = "IN_PROGRESS"
-    COMPLETED = "COMPLETED"
+    pending = "pending"
+    in_progress = "in_progress"
+    completed = "completed"
 
 
 # Database Models
@@ -34,7 +34,7 @@ class Task(BaseSQLModel, table=True):
 
     title: str = Field(max_length=200, index=True)
     description: Optional[str] = Field(max_length=1000, default=None)
-    status: TaskStatus = Field(default=TaskStatus.PENDING, index=True)
+    status: TaskStatus = Field(default=TaskStatus.pending, index=True)
     user_id: int = Field(foreign_key="users.id", index=True)
 
 
@@ -42,7 +42,7 @@ class Task(BaseSQLModel, table=True):
 class TaskCreate(BaseModel):
     title: str = PydanticField(min_length=1, max_length=200)
     description: Optional[str] = PydanticField(max_length=1000, default=None)
-    status: Optional[TaskStatus] = PydanticField(default=TaskStatus.PENDING)
+    status: Optional[TaskStatus] = PydanticField(default=TaskStatus.pending)
 
 
 class TaskUpdate(BaseModel):

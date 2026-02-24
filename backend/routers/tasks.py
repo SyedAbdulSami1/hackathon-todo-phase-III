@@ -29,6 +29,7 @@ def create_task(
     return db_task
 
 @router.get("", response_model=List[TaskResponse])
+@router.get("/", response_model=List[TaskResponse])
 def read_tasks(
     skip: int = 0,
     limit: int = 100,

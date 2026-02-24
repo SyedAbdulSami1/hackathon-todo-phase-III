@@ -13,7 +13,7 @@ class TaskService:
         task = Task(
             title=task_data["title"],
             description=task_data.get("description"),
-            status=task_data.get("status", TaskStatus.PENDING),
+            status=task_data.get("status", TaskStatus.pending),
             user_id=user_id
         )
 
@@ -99,14 +99,14 @@ class TaskService:
     @staticmethod
     def mark_task_complete(db: Session, user_id: int, task_id: int) -> TaskResponse:
         """Mark a task as complete"""
-        return TaskService.update_task(db, user_id, task_id, {"status": TaskStatus.COMPLETED})
+        return TaskService.update_task(db, user_id, task_id, {"status": TaskStatus.completed})
 
     @staticmethod
     def mark_task_in_progress(db: Session, user_id: int, task_id: int) -> TaskResponse:
         """Mark a task as in progress"""
-        return TaskService.update_task(db, user_id, task_id, {"status": TaskStatus.IN_PROGRESS})
+        return TaskService.update_task(db, user_id, task_id, {"status": TaskStatus.in_progress})
 
     @staticmethod
     def mark_task_pending(db: Session, user_id: int, task_id: int) -> TaskResponse:
         """Mark a task as pending"""
-        return TaskService.update_task(db, user_id, task_id, {"status": TaskStatus.PENDING})
+        return TaskService.update_task(db, user_id, task_id, {"status": TaskStatus.pending})

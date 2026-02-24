@@ -36,17 +36,10 @@ app = FastAPI(
     title="Todo API",
     description="Backend API for Todo App",
     version="1.0.0",
-    lifespan=lifespan,
-    redirect_slashes=False
+    lifespan=lifespan
 )
 
 # Configure CORS
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    os.getenv("CORS_ORIGINS", "*"),
-]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

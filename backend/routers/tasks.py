@@ -10,7 +10,7 @@ from dependencies.auth import get_current_active_user
 
 router = APIRouter()
 
-@router.post("/", response_model=TaskResponse)
+@router.post("", response_model=TaskResponse)
 def create_task(
     task: TaskCreate,
     current_user: User = Depends(get_current_active_user),
@@ -28,7 +28,7 @@ def create_task(
     session.refresh(db_task)
     return db_task
 
-@router.get("/", response_model=List[TaskResponse])
+@router.get("", response_model=List[TaskResponse])
 def read_tasks(
     skip: int = 0,
     limit: int = 100,

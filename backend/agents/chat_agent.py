@@ -8,11 +8,17 @@ from agents.config import AgentConfig
 from tools.registry import tool_registry
 
 class ChatAgent:
-    """AI agent for processing chat requests using OpenAI SDK."""
+    """AI agent for processing chat requests using Google Gemini (via OpenAI SDK)."""
 
     def __init__(self, config: Optional[AgentConfig] = None):
         self.config = config or AgentConfig()
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        
+        # Using Google's OpenAI-compatible base URL
+        api_key = os.getenv("GOOGLE_API_KEY")
+        base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        
+        self.model_name = os.getenv("AGENT_MODEL_NAME", "gemini-1.5-flash") # Free model
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.tools = tool_registry
 
     def process_request(self, user_input: str, conversation_context: Optional[List[Dict]] = None) -> Dict[str, Any]:
@@ -48,7 +54,7 @@ class ChatAgent:
         try:
             # 1. First call to OpenAI to get tool calls
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model_name,
                 messages=messages,
                 tools=tools,
                 tool_choice="auto"
@@ -87,7 +93,7 @@ class ChatAgent:
 
                 # 3. Second call to get final friendly response (Requirement #9)
                 second_response = self.client.chat.completions.create(
-                    model="gpt-4o",
+                    model=self.model_name,
                     messages=messages
                 )
                 

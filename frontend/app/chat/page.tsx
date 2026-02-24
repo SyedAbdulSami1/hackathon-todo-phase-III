@@ -16,7 +16,7 @@ export default function ChatPage() {
       const isAuthenticated = authClient.isAuthenticated();
       if (!isAuthenticated) {
         setStatus('unauthenticated');
-        router.push('/login');
+        router.push('/');
       } else {
         setStatus('authenticated');
       }

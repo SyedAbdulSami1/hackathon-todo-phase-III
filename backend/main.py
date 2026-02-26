@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, tasks, chat
 from db import create_db_and_tables
 from contextlib import asynccontextmanager
+from agents.factory import AgentFactory
 
 # Initialize the agent instance to be reused
 chat_agent = None
@@ -21,7 +22,6 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
 
     # Initialize the chat agent
-    from agents.factory import AgentFactory
     global chat_agent
     chat_agent = AgentFactory.create_default_agent()
     print("Chat agent initialized")

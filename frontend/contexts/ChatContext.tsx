@@ -8,6 +8,9 @@ interface Message {
   content: string;
   sender: 'user' | 'assistant';
   timestamp: string;
+  actions_taken?: string[];
+  tool_used?: string;
+  tool_result?: any;
 }
 
 interface Conversation {

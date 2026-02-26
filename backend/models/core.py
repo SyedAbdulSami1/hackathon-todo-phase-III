@@ -46,9 +46,9 @@ class TaskCreate(BaseModel):
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = PydanticField(min_length=1, max_length=200)
-    description: Optional[str] = PydanticField(max_length=1000)
-    status: Optional[TaskStatus]
+    title: Optional[str] = PydanticField(default=None, min_length=1, max_length=200)
+    description: Optional[str] = PydanticField(default=None, max_length=1000)
+    status: Optional[TaskStatus] = None
 
 
 class TaskResponse(BaseModel):

@@ -4,12 +4,26 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../contexts/ChatContext';
 import { sendChatMessage, getConversationHistory, getUserConversations } from '../lib/chatapi';
 import { authClient } from '../lib/auth';
+import { 
+  MessageSquare, 
+  PlusCircle, 
+  Send, 
+  Bot, 
+  User as UserIcon, 
+  Clock, 
+  Hash,
+  ChevronRight,
+  MoreVertical,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react';
 
 interface Message {
   id: string;
   content: string;
   sender: 'user' | 'assistant';
   timestamp: string;
+  actions_taken?: string[];
 }
 
 interface Conversation {
@@ -25,6 +39,7 @@ const ChatKitWrapper: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>('');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Load user on mount
   useEffect(() => {
@@ -32,32 +47,27 @@ const ChatKitWrapper: React.FC = () => {
     setUser(currentUser);
   }, []);
 
+  const loadConversations = React.useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const userConversations = await getUserConversations(user.id.toString());
+      // Sort by updated_at descending
+      const sorted = userConversations.sort((a: any, b: any) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+      setConversations(sorted);
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    }
+  }, [user?.id]);
+
   // Load user conversations when user is available
   useEffect(() => {
     if (user?.id) {
       loadConversations();
     }
-  }, [user]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [state.messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const loadConversations = async () => {
-    if (!user?.id) return;
-
-    try {
-      const userConversations = await getUserConversations(user.id.toString());
-      setConversations(userConversations);
-    } catch (error) {
-      console.error('Failed to load conversations:', error);
-    }
-  };
+  }, [user?.id, loadConversations]);
 
   const loadConversation = async (convId: string) => {
     if (!user?.id) return;
@@ -71,7 +81,8 @@ const ChatKitWrapper: React.FC = () => {
         id: msg.id,
         content: msg.content,
         sender: msg.sender_type === 'user' ? 'user' : 'assistant',
-        timestamp: msg.timestamp
+        timestamp: msg.timestamp,
+        actions_taken: msg.tool_used ? [msg.tool_used] : []
       }));
 
       dispatch({ type: 'SET_MESSAGES', payload: transformedMessages });
@@ -87,9 +98,10 @@ const ChatKitWrapper: React.FC = () => {
   const handleSendMessage = async () => {
     if (!inputValue.trim() || state.isLoading || !user?.id) return;
 
+    const userMessageContent = inputValue;
     const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
+      id: `user-${Date.now()}`,
+      content: userMessageContent,
       sender: 'user',
       timestamp: new Date().toISOString()
     };
@@ -102,7 +114,7 @@ const ChatKitWrapper: React.FC = () => {
     try {
       const response = await sendChatMessage(
         user.id.toString(),
-        inputValue,
+        userMessageContent,
         state.currentConversationId || undefined
       );
 
@@ -110,23 +122,24 @@ const ChatKitWrapper: React.FC = () => {
         id: response.message_id,
         content: response.response,
         sender: 'assistant',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        actions_taken: response.actions_taken
       };
 
       dispatch({ type: 'ADD_MESSAGE', payload: assistantMessage });
       dispatch({ type: 'SET_CURRENT_CONVERSATION', payload: response.conversation_id });
 
-      // Add to conversations list if it's a new conversation
-      if (!conversations.some(c => c.id === response.conversation_id)) {
-        loadConversations(); // Refresh the list
-      }
-    } catch (error) {
+      // Refresh conversations list to update titles/previews
+      loadConversations();
+    } catch (error: any) {
       console.error('Failed to send message:', error);
 
+      const errorText = error.response?.data?.detail || 'I encountered an issue connecting to my AI core. Please check your API key and try again.';
+      
       // Add error message to UI
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
-        content: 'Sorry, I encountered an error processing your request. Please try again.',
+        content: `Error: ${errorText}`,
         sender: 'assistant',
         timestamp: new Date().toISOString()
       };
@@ -148,88 +161,194 @@ const ChatKitWrapper: React.FC = () => {
     dispatch({ type: 'SET_CURRENT_CONVERSATION', payload: null });
   };
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    if (date.toDateString() === now.toDateString()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="bg-white border-b p-4 flex justify-between items-center">
-        <h2 className="text-xl font-bold">AI Chat Assistant</h2>
-        <button
-          onClick={startNewConversation}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          New Chat
-        </button>
+    <div className="flex h-[700px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200/60 backdrop-blur-xl">
+      {/* Premium Sidebar */}
+      <div className={`flex flex-col bg-slate-50/50 border-r border-slate-200/60 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-72' : 'w-0'}`}>
+        <div className="p-6 border-b border-slate-200/60 flex items-center justify-between bg-white/50">
+          <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center">
+            <Clock className="w-4 h-4 mr-2 text-blue-500" />
+            Recent Chats
+          </h3>
+          <button 
+            onClick={startNewConversation}
+            className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-blue-600"
+          >
+            <PlusCircle className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
+          {conversations.length === 0 ? (
+            <div className="py-10 px-4 text-center">
+              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Hash className="w-6 h-6 text-slate-300" />
+              </div>
+              <p className="text-slate-400 text-xs font-medium">No previous chats</p>
+            </div>
+          ) : (
+            conversations.map(conv => (
+              <button
+                key={conv.id}
+                onClick={() => loadConversation(conv.id)}
+                className={`w-full group text-left p-3.5 rounded-xl transition-all relative flex items-center space-x-3 ${
+                  state.currentConversationId === conv.id 
+                    ? 'bg-white shadow-md shadow-slate-200/50 border border-slate-200/60' 
+                    : 'hover:bg-white/80 text-slate-600'
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full transition-all ${
+                  state.currentConversationId === conv.id ? 'bg-blue-500 scale-125' : 'bg-slate-300 group-hover:bg-slate-400'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-semibold truncate ${
+                    state.currentConversationId === conv.id ? 'text-slate-900' : 'text-slate-600'
+                  }`}>
+                    {conv.title || 'New Conversation'}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium uppercase tracking-wider">
+                    {formatDate(conv.updated_at)}
+                  </p>
+                </div>
+                <ChevronRight className={`w-4 h-4 transition-all ${
+                  state.currentConversationId === conv.id ? 'text-blue-500 opacity-100' : 'text-slate-300 opacity-0 group-hover:opacity-100'
+                }`} />
+              </button>
+            ))
+          )}
+        </div>
       </div>
 
-      {/* Sidebar - Conversations List */}
-      <div className="hidden md:flex flex-col w-64 bg-gray-50 border-r p-4 overflow-y-auto">
-        <h3 className="font-semibold mb-2">Your Conversations</h3>
-        {conversations.length === 0 ? (
-          <p className="text-gray-500 text-sm">No conversations yet</p>
-        ) : (
-          <ul className="space-y-1">
-            {conversations.map(conv => (
-              <li key={conv.id}>
-                <button
-                  onClick={() => loadConversation(conv.id)}
-                  className={`w-full text-left p-2 rounded hover:bg-gray-100 truncate ${
-                    state.currentConversationId === conv.id ? 'bg-blue-100' : ''
-                  }`}
-                >
-                  {conv.title || `Chat ${new Date(conv.created_at).toLocaleDateString()}`}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Main Chat Interface */}
+      <div className="flex-1 flex flex-col relative bg-white">
+        {/* Modern Header */}
+        <header className="h-16 border-b border-slate-100/80 flex items-center justify-between px-6 z-10 bg-white/80 backdrop-blur-md">
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 md:hidden"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+            <div className="flex items-center">
+              <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 ring-4 ring-blue-50">
+                <Bot className="text-white w-5 h-5" />
+              </div>
+              <div className="ml-3">
+                <h2 className="text-sm font-bold text-slate-900 leading-none">AI Agent</h2>
+                <div className="flex items-center mt-1">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
+                  <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <div className="hidden sm:flex flex-col items-end mr-2">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">System Status</span>
+              <span className="text-[11px] text-slate-900 font-bold tracking-tight">Operational</span>
+            </div>
+            <div className="w-8 h-8 bg-slate-50 rounded-full border border-slate-100 flex items-center justify-center">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            </div>
+          </div>
+        </header>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+        {/* Messages Feed */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 custom-scrollbar bg-gradient-to-b from-white to-slate-50/30">
           {state.messages.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <p className="text-lg mb-2">Start a conversation with the AI assistant</p>
-                <p className="text-sm">Ask me to help you manage your tasks!</p>
+            <div className="h-full flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500">
+              <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6 ring-8 ring-blue-50/50">
+                <MessageSquare className="w-10 h-10 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">How can I help you today?</h3>
+              <p className="text-slate-500 text-sm max-w-sm font-medium leading-relaxed">
+                I&apos;m your intelligent task assistant. Ask me to list your todos, add new tasks, or mark them as complete.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-2">
+                {['List my tasks', 'Add a task to buy groceries', 'What\'s pending?'].map((suggestion) => (
+                  <button 
+                    key={suggestion}
+                    onClick={() => setInputValue(suggestion)}
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-all shadow-sm"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
-            <div className="space-y-4 max-w-3xl mx-auto">
-              {state.messages.map((message) => (
+            <div className="max-w-3xl mx-auto w-full">
+              {state.messages.map((message, idx) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-8 animate-in slide-in-from-bottom-4 duration-300 fill-mode-both`}
+                  style={{ animationDelay: `${idx * 50}ms` }}
                 >
-                  <div
-                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                      message.sender === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white border'
-                    }`}
-                  >
-                    <div className="whitespace-pre-wrap">{message.content}</div>
-                    <div
-                      className={`text-xs mt-1 ${
-                        message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
-                      }`}
-                    >
-                      {new Date(message.timestamp).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                  <div className={`flex items-start max-w-[85%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-1 ${
+                      message.sender === 'user' ? 'ml-3 bg-slate-100' : 'mr-3 bg-blue-100'
+                    }`}>
+                      {message.sender === 'user' ? <UserIcon className="w-4 h-4 text-slate-500" /> : <Bot className="w-4 h-4 text-blue-600" />}
+                    </div>
+                    
+                    <div>
+                      <div className={`p-4 shadow-sm ${
+                        message.sender === 'user'
+                          ? 'bg-slate-900 text-white rounded-2xl rounded-tr-none'
+                          : 'bg-white border border-slate-200/80 text-slate-800 rounded-2xl rounded-tl-none'
+                      }`}>
+                        <div className="text-[15px] leading-relaxed whitespace-pre-wrap font-medium">
+                          {message.content}
+                        </div>
+                        
+                        {/* Action Badges */}
+                        {message.actions_taken && message.actions_taken.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2">
+                            {message.actions_taken.map((action, i) => (
+                              <div key={i} className="flex items-center bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ring-1 ring-blue-100">
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                {action.replace('Action: ', '')}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className={`text-[10px] mt-2 font-bold uppercase tracking-widest text-slate-400 ${
+                        message.sender === 'user' ? 'text-right' : 'text-left'
+                      }`}>
+                        {new Date(message.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
+              
               {state.isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white border rounded-lg px-4 py-2 max-w-[80%]">
-                    <div className="flex space-x-2">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></div>
+                <div className="flex justify-start mb-8 animate-in fade-in duration-300">
+                  <div className="flex items-start max-w-[85%]">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1 mr-3 ring-4 ring-blue-50">
+                      <Bot className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="bg-white border border-slate-200/80 p-4 rounded-2xl rounded-tl-none shadow-sm">
+                      <div className="flex space-x-1.5 h-5 items-center">
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-duration:0.8s]"></div>
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.2s]"></div>
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.4s]"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -239,34 +358,56 @@ const ChatKitWrapper: React.FC = () => {
           )}
         </div>
 
-        {/* Input Area */}
-        <div className="border-t bg-white p-4">
-          <div className="flex max-w-3xl mx-auto">
-            <textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message here..."
-              className="flex-1 border rounded-l-lg p-3 resize-none h-16 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={state.isLoading}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={state.isLoading || !inputValue.trim()}
-              className={`px-6 rounded-r-lg ${
-                state.isLoading || !inputValue.trim()
-                  ? 'bg-gray-300 text-gray-500'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }`}
-            >
-              Send
-            </button>
+        {/* Premium Input Bar */}
+        <div className="p-6 bg-white border-t border-slate-100/80">
+          <div className="max-w-3xl mx-auto relative">
+            <div className="relative flex items-end group">
+              <div className="absolute left-4 bottom-4 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                <Hash className="w-5 h-5" />
+              </div>
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask your assistant anything..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-16 py-4 resize-none max-h-32 text-[15px] font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 focus:bg-white outline-none transition-all placeholder:text-slate-400 custom-scrollbar shadow-inner"
+                rows={1}
+                disabled={state.isLoading}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={state.isLoading || !inputValue.trim()}
+                className={`absolute right-2 bottom-2 p-2.5 rounded-xl transition-all ${
+                  state.isLoading || !inputValue.trim()
+                    ? 'bg-slate-100 text-slate-300'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 hover:scale-105 active:scale-95'
+                }`}
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="mt-3 text-[10px] text-center font-bold text-slate-400 uppercase tracking-widest">
+              Powered by Google Gemini 1.5 Flash • MCP Enabled
+            </p>
           </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            Ask me to create, update, or manage your tasks!
-          </p>
         </div>
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
+      `}</style>
     </div>
   );
 };

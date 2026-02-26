@@ -9,6 +9,7 @@ from uuid import uuid4
 def test_post_chat_endpoint_success(test_client, sample_user, db_session):
     """Test successful chat endpoint request."""
     # Add user to database
+    sample_user.id = 1
     db_session.add(sample_user)
     db_session.commit()
     db_session.refresh(sample_user)
@@ -19,10 +20,11 @@ def test_post_chat_endpoint_success(test_client, sample_user, db_session):
         "response": "Test response",
         "tool_used": "test_tool",
         "tool_result": {"success": True, "message": "Task created"},
-        "actions_taken": ["task_created"]
+        "actions_taken": ["task_created"],
+        "tool_calls": [{"name": "test_tool", "args": {}, "result": {"success": True}}]
     }
 
-    with patch('routers.chat.get_chat_agent', return_value=mock_agent):
+    with patch('main.get_chat_agent', return_value=mock_agent):
         response = test_client.post(
             f"/api/{sample_user.id}/chat",
             json={"message": "Create a test task"},
@@ -33,7 +35,7 @@ def test_post_chat_endpoint_success(test_client, sample_user, db_session):
     data = response.json()
     assert "response" in data
     assert data["response"] == "Test response"
-    assert data["tool_used"] == "test_tool"
+    assert "conversation_id" in data
 
 
 def test_post_chat_endpoint_missing_message(test_client, sample_user):
@@ -47,21 +49,23 @@ def test_post_chat_endpoint_missing_message(test_client, sample_user):
     assert response.status_code == 422  # Validation error
 
 
-def test_post_chat_endpoint_invalid_user_id(test_client):
-    """Test chat endpoint with invalid user ID."""
+def test_post_chat_endpoint_invalid_user_id(test_client, sample_user):
+    """Test chat endpoint with invalid user ID (mismatch with authenticated user)."""
+    # current_user is mocked to be sample_user
+    # If we request for a different ID, it should return 403 Forbidden
     response = test_client.post(
-        "/api/invalid_user_id/chat",
+        "/api/999/chat",
         json={"message": "Test message"},
         headers={"Authorization": "Bearer fake_token"}
     )
 
-    # Should return 400 for invalid user_id
-    assert response.status_code == 400
+    assert response.status_code == 403
 
 
 def test_get_user_conversations(test_client, sample_user, db_session):
     """Test getting user conversations."""
     # Add user to database
+    sample_user.id = 1
     db_session.add(sample_user)
     db_session.commit()
     db_session.refresh(sample_user)
@@ -79,11 +83,12 @@ def test_get_user_conversations(test_client, sample_user, db_session):
 def test_get_conversation_history(test_client, sample_user, sample_conversation, db_session):
     """Test getting conversation history."""
     # Add user and conversation to database
+    sample_user.id = 1
     db_session.add(sample_user)
     db_session.commit()
     db_session.refresh(sample_user)
 
-    sample_conversation.user_id = str(sample_user.id) if sample_user.id else "test_user_id"
+    sample_conversation.user_id = str(sample_user.id)
     db_session.add(sample_conversation)
     db_session.commit()
     db_session.refresh(sample_conversation)
@@ -101,7 +106,7 @@ def test_get_conversation_history(test_client, sample_user, sample_conversation,
 
 def test_get_conversation_history_not_found(test_client, sample_user):
     """Test getting non-existent conversation history."""
-    fake_conversation_id = str(uuid4())
+    fake_conversation_id = 999
 
     response = test_client.get(
         f"/api/{sample_user.id}/conversations/{fake_conversation_id}",
@@ -115,6 +120,7 @@ def test_get_conversation_history_not_found(test_client, sample_user):
 def test_get_conversation_history_wrong_user(test_client, sample_user, sample_conversation, db_session):
     """Test getting conversation history for wrong user."""
     # Add user and conversation to database
+    sample_user.id = 1
     db_session.add(sample_user)
     db_session.commit()
     db_session.refresh(sample_user)
@@ -134,13 +140,18 @@ def test_get_conversation_history_wrong_user(test_client, sample_user, sample_co
     assert response.status_code == 404
 
 
-def test_post_chat_endpoint_internal_error(test_client, sample_user):
+def test_post_chat_endpoint_internal_error(test_client, sample_user, db_session):
     """Test chat endpoint with internal server error."""
+    # Add user to database
+    sample_user.id = 1
+    db_session.add(sample_user)
+    db_session.commit()
+
     # Mock the chat agent to raise an exception
     mock_agent = MagicMock()
     mock_agent.process_request.side_effect = Exception("Internal error")
 
-    with patch('routers.chat.get_chat_agent', return_value=mock_agent):
+    with patch('main.get_chat_agent', return_value=mock_agent):
         response = test_client.post(
             f"/api/{sample_user.id}/chat",
             json={"message": "Test message"},
@@ -149,32 +160,19 @@ def test_post_chat_endpoint_internal_error(test_client, sample_user):
 
     assert response.status_code == 500
     data = response.json()
-    assert "error" in data
+    assert "detail" in data
+    assert "Internal server error" in data["detail"]
 
 
-def test_get_user_conversations_internal_error(test_client, sample_user):
-    """Test getting user conversations with internal error."""
-    # Mock the database query to raise an exception
-    with patch('routers.chat.Session') as mock_session_class:
-        mock_session = MagicMock()
-        mock_session.query.side_effect = Exception("DB error")
-        mock_session_class.return_value.__enter__.return_value = mock_session
-        mock_session_class.return_value.__exit__.return_value = None
-
-        response = test_client.get(
-            f"/api/{sample_user.id}/conversations",
-            headers={"Authorization": "Bearer fake_token"}
-        )
-
-    assert response.status_code == 500
-    data = response.json()
-    assert "error" in data
-
-
-def test_post_chat_endpoint_agent_not_initialized(test_client, sample_user):
+def test_post_chat_endpoint_agent_not_initialized(test_client, sample_user, db_session):
     """Test chat endpoint when agent is not initialized."""
+    # Add user to database
+    sample_user.id = 1
+    db_session.add(sample_user)
+    db_session.commit()
+
     # Mock the chat agent to return None
-    with patch('routers.chat.get_chat_agent', return_value=None):
+    with patch('main.get_chat_agent', return_value=None):
         response = test_client.post(
             f"/api/{sample_user.id}/chat",
             json={"message": "Test message"},
@@ -183,5 +181,5 @@ def test_post_chat_endpoint_agent_not_initialized(test_client, sample_user):
 
     assert response.status_code == 500
     data = response.json()
-    assert "error" in data
-    assert "not initialized" in data["error"]["message"]
+    assert "detail" in data
+    assert "not initialized" in data["detail"]

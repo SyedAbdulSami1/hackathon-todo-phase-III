@@ -5,24 +5,33 @@ import { ChatProvider } from '../../contexts/ChatContext';
 import ChatKitWrapper from '../../components/ChatKitWrapper';
 import { useEffect, useState } from 'react';
 import { authClient } from '../../lib/auth';
+import { Navigation } from '../../components/Navigation';
+import { User } from '../../types';
 
 export default function ChatPage() {
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check authentication on mount
     const checkAuth = () => {
       const isAuthenticated = authClient.isAuthenticated();
       if (!isAuthenticated) {
         setStatus('unauthenticated');
         router.push('/');
       } else {
+        const currentUser = authClient.getUser();
+        setUser(currentUser);
         setStatus('authenticated');
       }
     };
     checkAuth();
   }, [router]);
+
+  const handleLogout = () => {
+    authClient.logout();
+    router.push('/');
+  };
 
   if (status === 'loading') {
     return (
@@ -33,14 +42,15 @@ export default function ChatPage() {
   }
 
   if (status === 'unauthenticated') {
-    return null; // Redirect happens in useEffect
+    return null;
   }
 
   return (
     <ChatProvider>
       <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <Navigation user={user || undefined} onLogout={handleLogout} />
+        <div className="container mx-auto px-4 pb-8">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
             <ChatKitWrapper />
           </div>
         </div>

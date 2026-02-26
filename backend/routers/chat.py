@@ -33,14 +33,11 @@ async def chat_endpoint(
     """
     try:
         # Import inside function to avoid circular dependency
-        try:
-            from main import get_chat_agent
-        except ImportError:
-            from main import get_chat_agent
+        from main import get_chat_agent
 
         # Verify that the user_id in the path matches the authenticated user
-        # This is a simplified check - in a real implementation, you'd compare with user.id
-        if str(current_user.id) != user_id:
+        # user_id from path is string, current_user.id is int
+        if str(current_user.id) != str(user_id):
             raise HTTPException(
                 status_code=403,
                 detail="Forbidden: You can only access your own chat"
@@ -62,7 +59,14 @@ async def chat_endpoint(
             conversation_id = str(conversation.id)
         else:
             # Try to retrieve existing conversation
-            conversation = session.get(Conversation, conversation_id)
+            from uuid import UUID
+            try:
+                conv_uuid = UUID(conversation_id)
+                conversation = session.get(Conversation, conv_uuid)
+            except ValueError:
+                # If invalid UUID string, treat as not found
+                conversation = None
+                
             if not conversation:
                 # If conversation doesn't exist, create a new one
                 conversation = Conversation(user_id=user_id)
@@ -91,8 +95,9 @@ async def chat_endpoint(
         # Note: ChatAgent handles adding the new message internally in our refined version
 
         # 3. Store user message in database (Requirement #10 Step 4)
+        from uuid import UUID
         user_message = Message(
-            conversation_id=conversation_id,
+            conversation_id=UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id,
             sender_type=SenderType.USER,
             content=request.message,
             message_type="text"
@@ -101,16 +106,24 @@ async def chat_endpoint(
         session.commit()
 
         # 4. Run agent with history context (Requirement #10 Step 5)
-        result = agent.process_request(request.message, conversation_context=history_messages)
+        # Pass user_id so tools can act on the correct user's tasks
+        result = agent.process_request(request.message, user_id=str(current_user.id), conversation_context=history_messages)
 
         # 5. Store assistant response in database (Requirement #10 Step 7)
+        # Handle multiple tool calls by taking the first one for the single-column storage
+        primary_tool = None
+        primary_result = None
+        if result.get("tool_calls") and len(result["tool_calls"]) > 0:
+            primary_tool = result["tool_calls"][0]["name"]
+            primary_result = result["tool_calls"][0]["result"]
+
         assistant_message = Message(
-            conversation_id=conversation_id,
+            conversation_id=UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id,
             sender_type=SenderType.ASSISTANT,
             content=result["response"],
             message_type="text",
-            tool_used=result.get("tool_used"),
-            tool_result=result.get("tool_result")
+            tool_used=primary_tool,
+            tool_result=primary_result
         )
         session.add(assistant_message)
         session.commit()
@@ -136,8 +149,11 @@ async def chat_endpoint(
         raise
     except Exception as e:
         # Log the error (in a real implementation)
-        print(f"Error in chat endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        error_msg = f"Internal server error: {str(e)}"
+        print(f"Error in chat endpoint: {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 @router.get("/{user_id}/conversations")
@@ -181,12 +197,18 @@ async def get_conversation_history(
             )
 
         # Verify that the conversation belongs to the user
-        conversation = session.get(Conversation, conversation_id)
+        from uuid import UUID
+        try:
+            conv_uuid = UUID(conversation_id)
+            conversation = session.get(Conversation, conv_uuid)
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Invalid conversation ID format")
+
         if not conversation or conversation.user_id != user_id:
             raise HTTPException(status_code=404, detail="Conversation not found or access denied")
 
         # Get messages for this conversation
-        messages = session.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.timestamp).all()
+        messages = session.query(Message).filter(Message.conversation_id == conv_uuid).order_by(Message.timestamp).all()
 
         return {
             "conversation_id": str(conversation_id),
@@ -204,4 +226,6 @@ async def get_conversation_history(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error retrieving conversation history: {str(e)}")

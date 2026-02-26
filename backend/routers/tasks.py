@@ -94,9 +94,12 @@ def update_task(
         )
 
     # Update fields if provided
-    update_data = task_update.dict(exclude_unset=True)
+    update_data = task_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(task, field, value)
+
+    from datetime import datetime
+    task.updated_at = datetime.utcnow()
 
     session.add(task)
     session.commit()

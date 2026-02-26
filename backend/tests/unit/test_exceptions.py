@@ -95,7 +95,7 @@ def test_agent_processing_exception_no_details():
     """Test AgentProcessingException without details."""
     exception = AgentProcessingException()
 
-    assert "processing request with AI agent" in str(exception).lower()
+    assert "processing request with ai agent" in str(exception).lower()
     assert exception.details == ""
     assert exception.error_code == "AGENT_PROCESSING_ERROR"
 

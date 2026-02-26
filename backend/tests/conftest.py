@@ -3,6 +3,10 @@
 import pytest
 import tempfile
 import os
+
+# Force SQLite for tests
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session
@@ -10,9 +14,19 @@ from sqlmodel.pool import StaticPool
 
 from main import app
 from db import SQLModel, engine, get_session
-from models.user import User
-from models.conversation import Conversation
-from models.message import Message
+from models import User, Conversation, Message, SenderType
+from dependencies.auth import get_current_user
+
+
+@pytest.fixture(scope="function")
+def override_get_current_user(sample_user):
+    """Override the get_current_user dependency."""
+    def _get_current_user():
+        return sample_user
+
+    app.dependency_overrides[get_current_user] = _get_current_user
+    yield sample_user
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")
@@ -47,7 +61,7 @@ def override_get_session(db_session):
 
 
 @pytest.fixture(scope="function")
-def test_client(override_get_session):
+def test_client(override_get_session, override_get_current_user):
     """Create a test client with overridden dependencies."""
     with TestClient(app) as client:
         yield client
@@ -70,6 +84,7 @@ def mock_agent():
 def sample_user():
     """Sample user for testing."""
     return User(
+        id=1,
         username="testuser",
         email="test@example.com",
         hashed_password="fake_hashed_password"
@@ -90,6 +105,6 @@ def sample_message(sample_conversation):
     """Sample message for testing."""
     return Message(
         conversation_id=sample_conversation.id,
-        sender_type="user",
+        sender_type=SenderType.USER,
         content="Test message content"
     )

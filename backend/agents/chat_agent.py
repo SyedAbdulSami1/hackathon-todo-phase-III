@@ -13,23 +13,31 @@ class ChatAgent:
     def __init__(self, config: Optional[AgentConfig] = None):
         self.config = config or AgentConfig()
         
-        # Using Google's OpenAI-compatible base URL
-        api_key = os.getenv("GOOGLE_API_KEY")
-        base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        # Google's OpenAI-compatible Base URL MUST have the trailing slash
+        self.api_key = os.getenv("GOOGLE_API_KEY")
+        base_url = os.getenv("AGENT_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
         
-        self.model_name = os.getenv("AGENT_MODEL_NAME", "gemini-1.5-flash") # Free model
-        self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.model_name = os.getenv("AGENT_MODEL_NAME", "gemini-1.5-flash")
+        print(f"--- ChatAgent Startup ---")
+        print(f"Model: {self.model_name}")
+        print(f"Base URL: {base_url}")
+        
+        if not self.api_key:
+            print("WARNING: GOOGLE_API_KEY is missing! Agent will fail on requests.")
+            
+        self.client = OpenAI(api_key=self.api_key or "missing", base_url=base_url)
         self.tools = tool_registry
 
-    def process_request(self, user_input: str, conversation_context: Optional[List[Dict]] = None) -> Dict[str, Any]:
-        """
-        8-Step Stateless Flow (Requirement #10):
-        1. Receive user message
-        2. Fetch history (done in router)
-        3. Build message array
-        4. Run agent with tool-calling
-        5. Return response with tool_calls
-        """
+    def process_request(self, user_input: str, user_id: str = "1", conversation_context: Optional[List[Dict]] = None) -> Dict[str, Any]:
+        print(f"Processing request for user {user_id}: {user_input}")
+        
+        if not self.api_key or self.api_key == "missing":
+            return {
+                "response": "I'm sorry, but my API key is missing or invalid. Please check the backend configuration.",
+                "tool_calls": [],
+                "actions_taken": ["Auth check"]
+            }
+
         # Build the message array for OpenAI
         messages = []
         # Add system prompt for behavior (Requirement #9)
@@ -72,6 +80,10 @@ class ChatAgent:
                 for tool_call in tool_calls:
                     function_name = tool_call.function.name
                     function_args = json.loads(tool_call.function.arguments)
+                    
+                    # Ensure user_id is passed to tools if they expect it (Requirement #8)
+                    # We inject the current user's ID into the tool call
+                    function_args["user_id"] = str(user_id)
                     
                     # Execute the MCP tool (Requirement #8)
                     result = self.tools.execute_tool(function_name, **function_args)

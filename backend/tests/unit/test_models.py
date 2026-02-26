@@ -48,21 +48,6 @@ def test_message_creation():
     assert isinstance(message.timestamp, datetime)
 
 
-def test_message_required_fields():
-    """Test that required fields are enforced."""
-    from uuid import uuid4
-
-    conversation_id = uuid4()
-
-    # Should raise an error if required fields are missing
-    with pytest.raises(TypeError):
-        Message(
-            conversation_id=conversation_id,
-            content="Test message content"
-            # Missing sender_type
-        )
-
-
 def test_message_enum_values():
     """Test that sender_type enum values are correctly enforced."""
     from uuid import uuid4

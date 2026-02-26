@@ -99,100 +99,119 @@ export function TaskList() {
 
   return (
     <ErrorBoundary>
-      <div className={cn("space-y-6")}>
+      <div className={cn("space-y-12 pb-20")}>
         {/* Create Task Form */}
         <TaskForm
           onSubmit={createTask}
           isLoading={isCreating}
         />
 
-        {/* Filter Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Filter Tasks</h2>
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <span>Total: {tasks.length}</span>
-              {filterStatus === 'all' && (
-                <>
-                  <span>•</span>
-                  <span>Completed: {completedCount}</span>
-                  <span>•</span>
-                  <span>Pending: {pendingCount}</span>
-                </>
-              )}
+        {/* Main Content Section */}
+        <div className="space-y-8">
+          {/* Header & Filters */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                Current Missions
+                <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-1 rounded-lg uppercase tracking-[0.2em] font-bold">
+                  {tasks.length} Total
+                </span>
+              </h2>
+              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                Manage your daily objectives
+              </p>
             </div>
+            
+            <TaskFilters
+              currentFilter={filterStatus}
+              onFilterChange={setFilterStatus}
+            />
           </div>
-          <TaskFilters
-            currentFilter={filterStatus}
-            onFilterChange={setFilterStatus}
-          />
-        </div>
 
-        {/* Main Content */}
-        <div className="space-y-4">
-          {loading ? (
-            // Loading state
-            <div className="space-y-4">
-              <LoadingSkeleton.TaskForm />
-              <LoadingSkeleton.Filter />
-              {[...Array(3)].map((_, i) => (
-                <LoadingSkeleton.TaskCard key={i} />
-              ))}
-            </div>
-          ) : error ? (
-            // Error state
-            <Card className="p-6 text-center">
-              <div className="text-red-500">{error}</div>
-              <Button
-                onClick={fetchTasks}
-                className="mt-4"
-                variant="outline"
-              >
-                Retry
-              </Button>
-            </Card>
-          ) : filteredTasks.length === 0 ? (
-            // Empty states
-            <div className="space-y-4">
-              {tasks.length === 0 ? (
-                <NoTasksEmptyState
-                  onCreateTask={() => document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' })}
-                />
-              ) : (
-                <NoFilteredTasksEmptyState
-                  filter={filterStatus}
-                  onClearFilter={clearFilter}
-                  onCreateTask={() => {
-                    if (filterStatus === 'completed') {
-                      setFilterStatus('pending')
-                    }
-                    document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                />
-              )}
-            </div>
-          ) : (
-            // Task list
-            <div className="space-y-4">
-              {filterStatus !== 'completed' && completedCount === tasks.length && tasks.length > 0 && (
-                <AllTasksCompletedEmptyState
-                  onCreateTask={() => setFilterStatus('pending')}
-                />
-              )}
+          {/* Task Grid/List */}
+          <div className="min-h-[400px]">
+            {loading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-32 bg-white/50 animate-pulse rounded-3xl border border-slate-100" />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="glass p-12 text-center rounded-3xl border-red-100">
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Sync Failed</h3>
+                <p className="text-slate-500 font-medium mb-6">{error}</p>
+                <button
+                  onClick={fetchTasks}
+                  className="px-6 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all"
+                >
+                  Retry Connection
+                </button>
+              </div>
+            ) : filteredTasks.length === 0 ? (
+              <div className="space-y-4">
+                {tasks.length === 0 ? (
+                  <NoTasksEmptyState
+                    onCreateTask={() => document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' })}
+                  />
+                ) : (
+                  <NoFilteredTasksEmptyState
+                    filter={filterStatus}
+                    onClearFilter={clearFilter}
+                    onCreateTask={() => {
+                      if (filterStatus === 'completed') {
+                        setFilterStatus('pending')
+                      }
+                      document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' })
+                    }}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 animate-in fade-in duration-700">
+                {filterStatus !== 'completed' && completedCount === tasks.length && tasks.length > 0 && (
+                  <AllTasksCompletedEmptyState
+                    onCreateTask={() => setFilterStatus('pending')}
+                  />
+                )}
 
-              {filteredTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onToggleComplete={toggleTaskCompletion}
-                  onDelete={deleteTask}
-                  className="animate-fade-in"
-                />
-              ))}
-            </div>
-          )}
+                {filteredTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onToggleComplete={toggleTaskCompletion}
+                    onDelete={deleteTask}
+                    className="animate-in slide-in-from-bottom-4 duration-500"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </ErrorBoundary>
+  )
+}
+
+function AlertCircle({ className }: { className?: string }) {
+  return (
+    <svg 
+      className={className} 
+      xmlns="http://www.w3.org/2000/svg" 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
   )
 }

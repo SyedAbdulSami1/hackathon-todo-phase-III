@@ -81,11 +81,11 @@ def update_task(task_id: int, title: Optional[str] = None, description: Optional
 class ToolRegistry:
     """Registry adapter for ChatAgent to use FastMCP tools."""
     
-    def execute_tool(self, name: str, **kwargs) -> Any:
+    async def execute_tool(self, name: str, **kwargs) -> Any:
         # FastMCP tools can be accessed via the internal tool manager
         if name in mcp._tool_manager._tools:
-            # Call the tool function directly
-            return mcp._tool_manager._tools[name].run(**kwargs)
+            # Official FastMCP Tool.run is an async coroutine
+            return await mcp._tool_manager._tools[name].run(arguments=kwargs)
         return {"error": f"Tool {name} not found"}
 
     def get_tool_definitions(self) -> List[Dict[str, Any]]:

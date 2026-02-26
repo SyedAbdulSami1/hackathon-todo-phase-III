@@ -107,7 +107,7 @@ async def chat_endpoint(
 
         # 4. Run agent with history context (Requirement #10 Step 5)
         # Pass user_id so tools can act on the correct user's tasks
-        result = agent.process_request(request.message, user_id=str(current_user.id), conversation_context=history_messages)
+        result = await agent.process_request(request.message, user_id=str(current_user.id), conversation_context=history_messages)
 
         # 5. Store assistant response in database (Requirement #10 Step 7)
         # Handle multiple tool calls by taking the first one for the single-column storage

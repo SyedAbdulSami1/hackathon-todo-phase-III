@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 api_key = os.getenv("GOOGLE_API_KEY")
-model = "gemini-1.5-flash"
+model = "gemini-flash-latest"
 
 urls = [
     "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",

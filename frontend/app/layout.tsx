@@ -17,10 +17,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-background">
-          <main>{children}</main>
-        </div>
+      <body className={`${inter.className} mesh-gradient-light min-h-screen antialiased`}>
+        <main>{children}</main>
       </body>
     </html>
   )

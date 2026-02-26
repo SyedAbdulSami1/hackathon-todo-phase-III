@@ -3,7 +3,7 @@
 import os
 import json
 from typing import Dict, Any, List, Optional
-from openai import OpenAI
+from openai import AsyncOpenAI
 from agents.config import AgentConfig
 from tools.registry import tool_registry
 
@@ -17,7 +17,12 @@ class ChatAgent:
         self.api_key = os.getenv("GOOGLE_API_KEY")
         base_url = os.getenv("AGENT_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
         
-        self.model_name = os.getenv("AGENT_MODEL_NAME", "gemini-1.5-flash")
+        self.model_name = os.getenv("AGENT_MODEL_NAME", "gemini-flash-latest")
+        # Override broken model name from .env if present
+        if self.model_name == "gemini-1.5-flash":
+            print(f"DEBUG: Overriding gemini-1.5-flash with gemini-flash-latest for compatibility")
+            self.model_name = "gemini-flash-latest"
+            
         print(f"--- ChatAgent Startup ---")
         print(f"Model: {self.model_name}")
         print(f"Base URL: {base_url}")
@@ -25,10 +30,10 @@ class ChatAgent:
         if not self.api_key:
             print("WARNING: GOOGLE_API_KEY is missing! Agent will fail on requests.")
             
-        self.client = OpenAI(api_key=self.api_key or "missing", base_url=base_url)
+        self.client = AsyncOpenAI(api_key=self.api_key or "missing", base_url=base_url)
         self.tools = tool_registry
 
-    def process_request(self, user_input: str, user_id: str = "1", conversation_context: Optional[List[Dict]] = None) -> Dict[str, Any]:
+    async def process_request(self, user_input: str, user_id: str = "1", conversation_context: Optional[List[Dict]] = None) -> Dict[str, Any]:
         print(f"Processing request for user {user_id}: {user_input}")
         
         if not self.api_key or self.api_key == "missing":
@@ -61,7 +66,7 @@ class ChatAgent:
 
         try:
             # 1. First call to OpenAI to get tool calls
-            response = self.client.chat.completions.create(
+            response = await self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 tools=tools,
@@ -86,7 +91,7 @@ class ChatAgent:
                     function_args["user_id"] = str(user_id)
                     
                     # Execute the MCP tool (Requirement #8)
-                    result = self.tools.execute_tool(function_name, **function_args)
+                    result = await self.tools.execute_tool(function_name, **function_args)
                     
                     actions_taken.append(f"Action: {function_name}")
                     tool_results.append({
@@ -104,7 +109,7 @@ class ChatAgent:
                     })
 
                 # 3. Second call to get final friendly response (Requirement #9)
-                second_response = self.client.chat.completions.create(
+                second_response = await self.client.chat.completions.create(
                     model=self.model_name,
                     messages=messages
                 )
@@ -123,6 +128,8 @@ class ChatAgent:
             }
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return {
                 "response": f"Sorry, I encountered an error: {str(e)}",
                 "tool_calls": [],

@@ -18,7 +18,9 @@ import {
   Linkedin,
   BrainCircuit,
   Layout,
-  MessageSquare
+  MessageSquare,
+  Mail,
+  MessageCircle
 } from 'lucide-react'
 
 export default function Home() {
@@ -145,9 +147,19 @@ export default function Home() {
                 I built this platform to bridge the gap between human intent and machine execution, using the latest 
                 advancements in Agentic AI and MCP.&quot;
               </p>
-              <div className="flex space-x-4 pt-4">
-                <button className="p-3 bg-slate-100 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition-all"><Github /></button>
-                <button className="p-3 bg-slate-100 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition-all"><Linkedin /></button>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <a href="https://github.com/SyedAbdulSami1" target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-100 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition-all shadow-sm" title="GitHub">
+                  <Github className="w-6 h-6" />
+                </a>
+                <a href="https://www.linkedin.com/in/syed-abdul-sami-964a36277/" target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-100 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition-all shadow-sm" title="LinkedIn">
+                  <Linkedin className="w-6 h-6" />
+                </a>
+                <a href="mailto:samiwpp@gmail.com" className="p-3 bg-slate-100 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition-all shadow-sm" title="Email">
+                  <Mail className="w-6 h-6" />
+                </a>
+                <a href="https://wa.me/923018420180" target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-100 rounded-full hover:bg-green-50 hover:text-green-600 transition-all shadow-sm" title="WhatsApp">
+                  <MessageCircle className="w-6 h-6" />
+                </a>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 """Unit tests for the AI Chatbot agents."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from agents.config import AgentConfig
 from agents.chat_agent import ChatAgent
 from agents.tool_binder import ToolBinder
@@ -25,19 +25,20 @@ def test_agent_config_to_dict():
     assert config_dict["temperature"] == config.temperature
 
 
-@patch('agents.chat_agent.OpenAI')
+@patch('agents.chat_agent.AsyncOpenAI')
 def test_chat_agent_initialization(mock_openai):
     """Test ChatAgent initialization."""
     config = AgentConfig()
     agent = ChatAgent(config)
     
     assert agent.config == config
-    assert agent.model_name == "gemini-1.5-flash" or agent.model_name == config.model_name
+    assert agent.model_name in ["gemini-1.5-flash", "gemini-flash-latest", config.model_name]
     mock_openai.assert_called_once()
 
 
-@patch('agents.chat_agent.OpenAI')
-def test_chat_agent_process_request_basic(mock_openai_class):
+@pytest.mark.asyncio
+@patch('agents.chat_agent.AsyncOpenAI')
+async def test_chat_agent_process_request_basic(mock_openai_class):
     """Test ChatAgent process_request basic interaction."""
     mock_client = MagicMock()
     mock_openai_class.return_value = mock_client
@@ -50,18 +51,21 @@ def test_chat_agent_process_request_basic(mock_openai_class):
     mock_message.tool_calls = None
     mock_choice.message = mock_message
     mock_response.choices = [mock_choice]
-    mock_client.chat.completions.create.return_value = mock_response
+    
+    # completions.create is async
+    mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
     
     agent = ChatAgent()
-    result = agent.process_request("Hi")
+    result = await agent.process_request("Hi")
     
     assert result["response"] == "Hello there!"
     assert result["tool_calls"] == []
     assert "General interaction" in result["actions_taken"]
 
 
-@patch('agents.chat_agent.OpenAI')
-def test_chat_agent_process_request_with_tools(mock_openai_class):
+@pytest.mark.asyncio
+@patch('agents.chat_agent.AsyncOpenAI')
+async def test_chat_agent_process_request_with_tools(mock_openai_class):
     """Test ChatAgent process_request with tool calls."""
     mock_client = MagicMock()
     mock_openai_class.return_value = mock_client
@@ -85,16 +89,16 @@ def test_chat_agent_process_request_with_tools(mock_openai_class):
     mock_message2.tool_calls = None
     mock_response2.choices = [MagicMock(message=mock_message2)]
     
-    mock_client.chat.completions.create.side_effect = [mock_response1, mock_response2]
+    mock_client.chat.completions.create = AsyncMock(side_effect=[mock_response1, mock_response2])
     
     # Mock tool registry
     mock_registry = MagicMock()
-    mock_registry.execute_tool.return_value = {"success": True, "task_id": 1}
+    mock_registry.execute_tool = AsyncMock(return_value={"success": True, "task_id": 1})
     
     agent = ChatAgent()
     agent.tools = mock_registry
     
-    result = agent.process_request("Add buy milk task")
+    result = await agent.process_request("Add buy milk task")
     
     assert result["response"] == "I've added the task for you."
     assert len(result["tool_calls"]) == 1
@@ -112,13 +116,13 @@ def test_tool_binder_initialization():
 
 def test_agent_factory_create_chat_agent():
     """Test AgentFactory create_chat_agent method."""
-    with patch('agents.chat_agent.OpenAI'):
+    with patch('agents.chat_agent.AsyncOpenAI'):
         agent = AgentFactory.create_chat_agent()
         assert isinstance(agent, ChatAgent)
 
 
 def test_agent_factory_create_default_agent():
     """Test AgentFactory create_default_agent method."""
-    with patch('agents.chat_agent.OpenAI'):
+    with patch('agents.chat_agent.AsyncOpenAI'):
         agent = AgentFactory.create_default_agent()
         assert isinstance(agent, ChatAgent)

@@ -2,7 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from uuid import uuid4
 
 
@@ -16,13 +16,13 @@ def test_post_chat_endpoint_success(test_client, sample_user, db_session):
 
     # Mock the chat agent
     mock_agent = MagicMock()
-    mock_agent.process_request.return_value = {
+    mock_agent.process_request = AsyncMock(return_value={
         "response": "Test response",
         "tool_used": "test_tool",
         "tool_result": {"success": True, "message": "Task created"},
         "actions_taken": ["task_created"],
         "tool_calls": [{"name": "test_tool", "args": {}, "result": {"success": True}}]
-    }
+    })
 
     with patch('main.get_chat_agent', return_value=mock_agent):
         response = test_client.post(
@@ -149,7 +149,7 @@ def test_post_chat_endpoint_internal_error(test_client, sample_user, db_session)
 
     # Mock the chat agent to raise an exception
     mock_agent = MagicMock()
-    mock_agent.process_request.side_effect = Exception("Internal error")
+    mock_agent.process_request = AsyncMock(side_effect=Exception("Internal error"))
 
     with patch('main.get_chat_agent', return_value=mock_agent):
         response = test_client.post(

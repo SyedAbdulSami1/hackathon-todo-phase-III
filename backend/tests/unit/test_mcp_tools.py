@@ -1,7 +1,7 @@
 """Unit tests for the AI Chatbot MCP tools."""
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch, AsyncMock
 from tools.base import BaseMCPTool
 from tools.add_task import AddTaskMCPTool
 from tools.update_task import UpdateTaskMCPTool
@@ -57,19 +57,20 @@ def test_complete_task_tool_properties():
     assert "task_id" in tool.parameters["required"]
 
 
-def test_tool_registry_execute_tool():
+@pytest.mark.asyncio
+async def test_tool_registry_execute_tool():
     """Test executing a tool through the registry."""
     with patch("tools.registry.mcp") as mock_mcp:
         # Mock the internal tools dictionary of FastMCP
         mock_tool = MagicMock()
-        mock_tool.run.return_value = {"success": True}
+        mock_tool.run = AsyncMock(return_value={"success": True})
         mock_mcp._tool_manager._tools = {"test_tool": mock_tool}
         
         from tools.registry import tool_registry
-        result = tool_registry.execute_tool("test_tool", param="value")
+        result = await tool_registry.execute_tool("test_tool", param="value")
         
         assert result == {"success": True}
-        mock_tool.run.assert_called_once_with(param="value")
+        mock_tool.run.assert_called_once_with(arguments={"param": "value"})
 
 
 def test_tool_registry_get_tool_definitions():

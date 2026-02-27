@@ -16,7 +16,24 @@ import type {
 // Configuration
 // ============================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// On Vercel, if NEXT_PUBLIC_API_URL is not set, we prefer relative paths
+const getBaseUrl = () => {
+  // If we have an explicit override, use it
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  
+  // If we're in the browser on a non-localhost domain, use relative paths
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return '';
+    }
+  }
+  
+  // Fallback to local development URL
+  return 'http://localhost:8000';
+}
+
+const API_BASE_URL = getBaseUrl()
 
 // ============================================
 // API Client Class

@@ -13,11 +13,14 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/main.py"
+      "destination": "backend/main.py"
     },
     {
       "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "destination": "frontend/$1"
     }
-  ]
+  ],
+  "env": {
+    "NEXT_PUBLIC_API_URL": ""
+  }
 }

@@ -36,7 +36,8 @@ app = FastAPI(
     title="Todo API",
     description="Backend API for Todo App",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    redirect_slashes=False
 )
 
 # Configure CORS

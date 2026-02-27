@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { TaskList } from '@/components/task-list'
 import { AuthForms } from '@/components/auth-forms'
 import { authClient } from '@/lib/auth'
@@ -127,9 +128,11 @@ export default function Home() {
             <div className="flex-1 relative">
               <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
               <div className="relative z-10 p-2 bg-gradient-to-br from-slate-200 to-indigo-100 rounded-[3rem] shadow-2xl rotate-2">
-                <img 
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Syed" 
+                <Image 
+                  src="https://yt3.googleusercontent.com/ytc/AIdro_nDvqZTu9DGV1ZrV_k8H00SJpHawVKCDhJbUnMO-dPTtjY=s160-c-k-c0x00ffffff-no-rj" 
                   alt="Syed Abdul Sami" 
+                  width={400}
+                  height={400}
                   className="rounded-[2.8rem] bg-white w-full h-[400px] object-cover"
                 />
               </div>
@@ -138,9 +141,9 @@ export default function Home() {
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-indigo-600">Meet the Visionary</h2>
               <h3 className="text-2xl font-bold text-[#1D1D1F]">Syed Abdul Sami <span className="text-[#86868B] font-medium">— Lead Architect</span></h3>
               <p className="text-lg text-[#86868B] font-medium leading-relaxed">
-                "TaskFlow was born out of a simple need: To make technology serve us, not the other way around. 
+                &quot;TaskFlow was born out of a simple need: To make technology serve us, not the other way around. 
                 I built this platform to bridge the gap between human intent and machine execution, using the latest 
-                advancements in Agentic AI and MCP."
+                advancements in Agentic AI and MCP.&quot;
               </p>
               <div className="flex space-x-4 pt-4">
                 <button className="p-3 bg-slate-100 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition-all"><Github /></button>

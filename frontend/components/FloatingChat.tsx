@@ -34,7 +34,7 @@ export const FloatingChat: React.FC<FloatingChatProps> = ({ user }) => {
       const assistantMsg = { role: 'assistant', content: response.response };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I'm having trouble connecting right now." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I&apos;m having trouble connecting right now." }]);
     } finally {
       setLoading(false);
     }

@@ -182,6 +182,32 @@ The chatbot uses a sophisticated architecture with MCP tools to interact seamles
 - `GET /api/{user_id}/conversations/{conversation_id}` - Get specific conversation details
 - `POST /api/{user_id}/conversations` - Start a new conversation
 
+## 🧪 Testing
+
+The backend includes a comprehensive test suite to ensure reliability and correct behavior of all features, including the AI Chatbot and MCP tools.
+
+### Running Backend Tests
+
+To run the backend tests locally:
+
+1.  **Navigate to the backend directory and activate your virtual environment.**
+2.  **Run pytest from the project root:**
+    ```bash
+    # Set PYTHONPATH to include the backend directory
+    $env:PYTHONPATH="backend" # Windows PowerShell
+    pytest backend/tests/test_main.py
+    ```
+
+### Test Results
+
+The latest test results are saved in `backend/pytest-result.txt`. You can view this file to see the status of the last test run.
+
+To update the test results file:
+```bash
+$env:PYTHONPATH="backend"
+pytest backend/tests/test_main.py > backend/pytest-result.txt 2>&1
+```
+
 ## 🏗️ Project Structure
 
 ```

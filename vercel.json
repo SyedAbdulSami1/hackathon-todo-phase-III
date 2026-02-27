@@ -10,6 +10,7 @@
       "use": "@vercel/next"
     }
   ],
+  "outputDirectory": "frontend/.next",
   "rewrites": [
     {
       "source": "/api/(.*)",

@@ -68,10 +68,8 @@ export class ApiClient {
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('auth_token')
-      localStorage.removeItem('user_data')
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login'
-      }
+      localStorage.removeItem('user') // Match the key used in authClient
+      // Don't redirect to /login as it doesn't exist, the UI handles state via loggedIn
     }
     throw this.normalizeError(error)
   }

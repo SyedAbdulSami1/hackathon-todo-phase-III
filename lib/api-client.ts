@@ -18,21 +18,23 @@ import type {
 
 // On Vercel, if NEXT_PUBLIC_API_URL is not set, we prefer relative paths
 const getBaseUrl = () => {
-  // If we have an explicit override, use it
+  // 1. Explicit environment variable
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-  
-  // If we're in the browser on a non-localhost domain, use relative paths
+
+  // 2. Browser environment
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return '';
+    // If we're on localhost, use the local backend
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
     }
+    // On Vercel or any other domain, use relative paths so it goes through vercel.json rewrites
+    return '';
   }
-  
-  // Fallback to local development URL
-  return 'http://localhost:8000';
-}
 
+  // 3. Server-side / Fallback
+  return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:8000';
+}
 const API_BASE_URL = getBaseUrl()
 
 // ============================================

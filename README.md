@@ -61,6 +61,10 @@ npm run dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+for backend 
+cd backend
+# old uviconr main:app --reload
+ uvicorn index:app --reload
 
 ## Key Features
 

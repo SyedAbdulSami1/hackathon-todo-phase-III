@@ -15,8 +15,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-this-in-produc
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - Using pbkdf2_sha256 to avoid the common bcrypt 72-byte bug on Vercel
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")

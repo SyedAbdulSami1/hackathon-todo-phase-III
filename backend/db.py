@@ -9,10 +9,13 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set")
 
+# SQLAlchemy requires postgresql:// instead of postgres://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # Create SQLModel engine
 engine_params = {
     "echo": True,
-    "pool_pre_ping": True,
 }
 
 # Only add pool_size and max_overflow for non-sqlite databases

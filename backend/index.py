@@ -39,13 +39,13 @@ async def lifespan(app: FastAPI):
         print(f"Database initialization error: {e}")
 
     # Initialize the chat agent safely
-    global chat_agent
     try:
-        chat_agent = AgentFactory.create_default_agent()
-        print("Chat agent initialized")
+        agent = AgentFactory.create_default_agent()
+        app.state.chat_agent = agent
+        print("Chat agent initialized and stored in app state")
     except Exception as e:
         print(f"Chat agent initialization error: {e}")
-        chat_agent = None
+        app.state.chat_agent = None
 
     yield
 
@@ -98,4 +98,4 @@ async def health_check():
 # Add a way to access the agent globally if needed
 def get_chat_agent():
     """Get the global chat agent instance."""
-    return chat_agent
+    return getattr(app.state, "chat_agent", None)

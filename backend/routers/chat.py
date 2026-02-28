@@ -1,6 +1,6 @@
 """Chat endpoint router for the AI Chatbot feature."""
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from typing import Dict, Any
 from uuid import uuid4
 from sqlmodel import Session
@@ -19,18 +19,17 @@ except ImportError:
 
 from dependencies.auth import get_current_user
 
-def get_chat_agent():
-    """Get the global chat agent instance."""
-    # Import inside function to avoid circular dependency
-    from index import get_chat_agent as get_global_agent
-    return get_global_agent()
-
 router = APIRouter()
+
+def get_chat_agent(request: Request):
+    """Get the global chat agent instance from the FastAPI app state."""
+    return getattr(request.app.state, "chat_agent", None)
 
 @router.post("/{user_id}/chat", response_model=ChatResponse)
 async def chat_endpoint(
     user_id: str,
     request: ChatRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
@@ -47,11 +46,13 @@ async def chat_endpoint(
                 detail="Forbidden: You can only access your own chat"
             )
 
-        # Get the global chat agent
-        print(f"DEBUG: Getting chat agent...")
-        agent = get_chat_agent()
+        # Get the global chat agent from app state
+        print(f"DEBUG: Getting chat agent from app state...")
+        agent = get_chat_agent(http_request)
+        
         if not agent:
-            print(f"DEBUG: Chat agent is None!")
+            print(f"DEBUG: Chat agent is None in app state!")
+            # Try a fallback if possible, but app state is the preferred way
             raise HTTPException(status_code=500, detail="Chat agent not initialized")
 
         # Determine conversation ID - create new if not provided

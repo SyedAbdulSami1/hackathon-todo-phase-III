@@ -15,7 +15,7 @@ class ChatAgent:
         
         # Google's OpenAI-compatible Base URL MUST have the trailing slash
         self.api_key = os.getenv("GOOGLE_API_KEY")
-        base_url = os.getenv("AGENT_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
+        self.base_url = os.getenv("AGENT_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
         
         self.model_name = os.getenv("AGENT_MODEL_NAME", "gemini-flash-latest")
         # Override broken model name from .env if present
@@ -25,23 +25,29 @@ class ChatAgent:
             
         print(f"--- ChatAgent Startup ---")
         print(f"Model: {self.model_name}")
-        print(f"Base URL: {base_url}")
+        print(f"Base URL: {self.base_url}")
         
         if not self.api_key:
             print("WARNING: GOOGLE_API_KEY is missing! Agent will fail on requests.")
             
-        self.client = AsyncOpenAI(api_key=self.api_key or "missing", base_url=base_url)
+        # Initialize client lazily or handle missing key
+        self.client = None
+        if self.api_key:
+            self.client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
         self.tools = tool_registry
 
     async def process_request(self, user_input: str, user_id: str = "1", conversation_context: Optional[List[Dict]] = None) -> Dict[str, Any]:
         print(f"Processing request for user {user_id}: {user_input}")
         
-        if not self.api_key or self.api_key == "missing":
+        if not self.api_key:
             return {
-                "response": "I'm sorry, but my API key is missing or invalid. Please check the backend configuration.",
+                "response": "I'm sorry, but my GOOGLE_API_KEY is missing. Please add it to Vercel Environment Variables.",
                 "tool_calls": [],
                 "actions_taken": ["Auth check"]
             }
+
+        if not self.client:
+            self.client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
 
         # Build the message array for OpenAI
         messages = []

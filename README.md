@@ -64,6 +64,7 @@ npm run dev
 for backend 
 cd backend
 # old uviconr main:app --reload
+Now use this command
  uvicorn index:app --reload
 
 ## Key Features

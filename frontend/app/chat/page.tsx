@@ -1,12 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ChatProvider } from '../../contexts/ChatContext';
-import ChatKitWrapper from '../../components/ChatKitWrapper';
+import { ChatProvider } from '@/contexts/ChatContext';
+import ChatKitWrapper from '@/components/ChatKitWrapper';
 import { useEffect, useState } from 'react';
-import { authClient } from '../../lib/auth';
-import { Navigation } from '../../components/Navigation';
-import { User } from '../../types';
+import { authClient } from '@/lib/auth';
+import { Navigation } from '@/components/Navigation';
+import { User } from '@/types';
 
 export default function ChatPage() {
   const router = useRouter();

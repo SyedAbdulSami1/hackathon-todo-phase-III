@@ -19,12 +19,20 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     print("Starting up...")
-    create_db_and_tables()
+    try:
+        create_db_and_tables()
+        print("Database tables verified/created")
+    except Exception as e:
+        print(f"Database initialization error: {e}")
 
-    # Initialize the chat agent
+    # Initialize the chat agent safely
     global chat_agent
-    chat_agent = AgentFactory.create_default_agent()
-    print("Chat agent initialized")
+    try:
+        chat_agent = AgentFactory.create_default_agent()
+        print("Chat agent initialized")
+    except Exception as e:
+        print(f"Chat agent initialization error: {e}")
+        chat_agent = None
 
     yield
 

@@ -37,67 +37,72 @@ async def chat_endpoint(
     """
     Process natural language input and return appropriate response.
     """
+    print(f"DEBUG: Chat endpoint reached for user {user_id}")
     try:
         # Verify that the user_id in the path matches the authenticated user
-        # user_id from path is string, current_user.id is int
         if str(current_user.id) != str(user_id):
+            print(f"DEBUG: User ID mismatch: {current_user.id} vs {user_id}")
             raise HTTPException(
                 status_code=403,
                 detail="Forbidden: You can only access your own chat"
             )
 
         # Get the global chat agent
+        print(f"DEBUG: Getting chat agent...")
         agent = get_chat_agent()
         if not agent:
+            print(f"DEBUG: Chat agent is None!")
             raise HTTPException(status_code=500, detail="Chat agent not initialized")
 
         # Determine conversation ID - create new if not provided
         conversation_id = request.conversation_id
+        print(f"DEBUG: Conversation ID from request: {conversation_id}")
+        
         if not conversation_id:
-            # Create a new conversation
+            print(f"DEBUG: Creating new conversation...")
             conversation = Conversation(user_id=user_id)
             session.add(conversation)
             session.commit()
             session.refresh(conversation)
             conversation_id = str(conversation.id)
+            print(f"DEBUG: New conversation created: {conversation_id}")
         else:
-            # Try to retrieve existing conversation
+            print(f"DEBUG: Looking up existing conversation...")
             from uuid import UUID
             try:
                 conv_uuid = UUID(conversation_id)
                 conversation = session.get(Conversation, conv_uuid)
             except ValueError:
-                # If invalid UUID string, treat as not found
+                print(f"DEBUG: Invalid UUID format: {conversation_id}")
                 conversation = None
                 
             if not conversation:
-                # If conversation doesn't exist, create a new one
+                print(f"DEBUG: Conversation not found, creating new...")
                 conversation = Conversation(user_id=user_id)
                 session.add(conversation)
                 session.commit()
                 session.refresh(conversation)
                 conversation_id = str(conversation.id)
-            elif conversation.user_id != user_id:
-                # Verify the conversation belongs to the user
+            elif str(conversation.user_id) != str(user_id):
+                print(f"DEBUG: Conversation ownership mismatch: {conversation.user_id} vs {user_id}")
                 raise HTTPException(
                     status_code=403,
                     detail="Forbidden: You can only access your own conversations"
                 )
 
-        # 1. Fetch conversation history from database (Requirement #10 Step 2)
+        # 1. Fetch conversation history from database
+        print(f"DEBUG: Fetching history for {conversation_id}...")
         history_messages = []
-        if request.conversation_id:
-            db_history = session.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.timestamp).all()
-            for msg in db_history:
-                history_messages.append({
-                    "role": msg.sender_type.value,
-                    "content": msg.content
-                })
+        db_history = session.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.timestamp).all()
+        for msg in db_history:
+            history_messages.append({
+                "role": msg.sender_type.value,
+                "content": msg.content
+            })
+        print(f"DEBUG: Found {len(history_messages)} history messages")
 
-        # 2. Build array for agent: history + new message (Requirement #10 Step 3)
-        # Note: ChatAgent handles adding the new message internally in our refined version
-
-        # 3. Store user message in database (Requirement #10 Step 4)
+        # 3. Store user message in database
+        print(f"DEBUG: Storing user message...")
         from uuid import UUID
         user_message = Message(
             conversation_id=UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id,
@@ -108,12 +113,13 @@ async def chat_endpoint(
         session.add(user_message)
         session.commit()
 
-        # 4. Run agent with history context (Requirement #10 Step 5)
-        # Pass user_id so tools can act on the correct user's tasks
+        # 4. Run agent with history context
+        print(f"DEBUG: Calling agent.process_request...")
         result = await agent.process_request(request.message, user_id=str(current_user.id), conversation_context=history_messages)
+        print(f"DEBUG: Agent responded: {result.get('response')[:50]}...")
 
-        # 5. Store assistant response in database (Requirement #10 Step 7)
-        # Handle multiple tool calls by taking the first one for the single-column storage
+        # 5. Store assistant response in database
+        print(f"DEBUG: Storing assistant response...")
         primary_tool = None
         primary_result = None
         if result.get("tool_calls") and len(result["tool_calls"]) > 0:
@@ -136,9 +142,9 @@ async def chat_endpoint(
         conversation.updated_at = datetime.utcnow()
         session.add(conversation)
         session.commit()
+        print(f"DEBUG: Chat endpoint completed successfully")
 
-        # 6. Return response with tool_calls (Requirement #10 Step 8)
-        # Requirement #7 Response format: conversation_id, response, tool_calls
+        # 6. Return response
         return ChatResponse(
             conversation_id=str(conversation_id),
             response=result["response"],
@@ -147,16 +153,14 @@ async def chat_endpoint(
             actions_taken=result.get("actions_taken", [])
         )
 
-    except HTTPException:
-        # Re-raise HTTP exceptions
+    except HTTPException as e:
+        print(f"DEBUG: HTTP Error in chat endpoint: {e.detail}")
         raise
     except Exception as e:
-        # Log the error (in a real implementation)
+        print(f"DEBUG: UNEXPECTED ERROR in chat endpoint: {str(e)}")
         import traceback
         traceback.print_exc()
-        error_msg = f"Internal server error: {str(e)}"
-        print(f"Error in chat endpoint: {error_msg}")
-        raise HTTPException(status_code=500, detail=error_msg)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{user_id}/conversations")

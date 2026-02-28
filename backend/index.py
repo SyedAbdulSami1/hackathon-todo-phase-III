@@ -79,6 +79,18 @@ app.include_router(chat.router, prefix="/api", tags=["chat"])
 async def root():
     return {"message": "Hello from the Todo Server!"}
 
+@app.get("/api/debug-env")
+async def debug_env():
+    google_key = os.getenv("GOOGLE_API_KEY")
+    db_url = os.getenv("DATABASE_URL")
+    return {
+        "GOOGLE_API_KEY_PRESENT": google_key is not None,
+        "GOOGLE_API_KEY_LENGTH": len(google_key) if google_key else 0,
+        "GOOGLE_API_KEY_START": google_key[:5] if google_key else "None",
+        "DATABASE_URL_PRESENT": db_url is not None,
+        "PYTHON_PATH": sys.path
+    }
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}

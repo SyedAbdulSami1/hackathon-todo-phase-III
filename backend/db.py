@@ -45,4 +45,13 @@ def get_session():
 
 def create_db_and_tables():
     """Create database tables for all registered models"""
-    SQLModel.metadata.create_all(engine)
+    print("DEBUG: Starting create_db_and_tables...")
+    try:
+        SQLModel.metadata.create_all(engine)
+        print("DEBUG: create_db_and_tables completed successfully")
+    except Exception as e:
+        print(f"DEBUG: ERROR in create_db_and_tables: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Don't re-raise here to allow the app to start even if migration fails
+        # (might already exist)

@@ -5,5 +5,15 @@
       "source": "/api/(.*)",
       "destination": "/api/index.py"
     }
+  ],
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "backend/index.py",
+      "use": "@vercel/python"
+    }
   ]
 }

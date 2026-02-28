@@ -8,8 +8,10 @@ from sqlmodel import Session, select
 from models import User, UserLogin, Token
 from db import get_session
 
+import os
+
 # Security configuration
-SECRET_KEY = "your-secret-key-here-change-this-in-production"
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-this-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -21,7 +23,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        if not hashed_password:
+            return False
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        print(f"ERROR: bcrypt verification failed: {str(e)}")
+        # If it fails with the 72-byte error, it's often due to legacy hash compatibility
+        return False
 
 def get_password_hash(password: str) -> str:
     """Generate password hash"""

@@ -1,0 +1,102 @@
+
+# 2026-02-13 04:35:26.587307
++y
+
+# 2026-02-13 04:36:21.034372
++soft Windows [Version 10.0.19045.6937]
+
+# 2026-02-13 04:37:05.594623
++(c) Microsoft Corporation. All rights reserved.
+
+# 2026-02-13 04:37:15.528064
++D:\D Data\Hackthon-Second\hackathon-todo-phase-II>cd f
+
+# 2026-02-13 04:37:22.191487
++The system cannot find the path specified.
+
+# 2026-02-13 04:37:29.092653
++D:\D Data\Hackthon-Second\hackathon-todo-phase-II>cd frontend
+
+# 2026-02-13 04:37:36.201323
++D:\D Data\Hackthon-Second\hackathon-todo-phase-II\frontend>npm run build
+
+# 2026-02-13 04:37:43.760523
++> todo-frontend@0.1.0 build
+
+# 2026-02-13 04:37:48.405940
++> next build
+
+# 2026-02-13 04:37:54.799861
++ Invalid next.config.js options detected: 
+
+# 2026-02-13 04:37:55.357895
++     Unrecognized key(s) in object: 'appDir' at "experimental"
+
+# 2026-02-13 04:37:55.823895
++ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+
+# 2026-02-13 04:37:56.030892
++ Next.js 16.1.6 (Turbopack)
+
+# 2026-02-13 04:37:56.300897
++- Environments: .env.local
+
+# 2026-02-13 04:37:56.728062
++- Experiments (use with caution):
+
+# 2026-02-13 04:37:57.213318
++  ? appDir (invalid experimental key)
+
+# 2026-02-13 04:38:01.379146
++  Creating an optimized production build ...
+
+# 2026-02-13 04:38:05.955856
++ Compiled successfully in 21.0s
+
+# 2026-02-13 04:38:10.430013
++Type error: Import declaration conflicts with local declaration of 'Filter'.      
+
+# 2026-02-13 04:38:50.145095
++  3 | import { Button } from '@/components/ui/button'
+
+# 2026-02-13 04:39:02.143083
++  4 | import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+# 2026-02-13 04:39:02.220097
++> 5 | import { Filter } from 'lucide-react'
+
+# 2026-02-13 04:39:02.262095
++    |          ^
+
+# 2026-02-13 04:39:02.367087
++  6 | import { TaskStatus } from '@/types'
+
+# 2026-02-13 04:39:02.426102
++  7 |
+
+# 2026-02-13 04:39:02.492092
++  8 | interface FilterProps {
+
+# 2026-02-13 04:45:59.107113
++D:\D Data\Hackthon-Second\hackathon-todo-phase-II>cd frontend
+
+# 2026-02-13 04:46:02.110979
++D:\D Data\Hackthon-Second\hackathon-todo-phase-II\frontend>npm run build
+
+# 2026-02-13 04:46:02.707963
++> todo-frontend@0.1.0 build
+
+# 2026-02-13 04:46:03.372929
++> next build
+
+# 2026-02-13 04:46:04.150974
++ Invalid next.config.js options detected: 
+
+# 2026-02-13 04:46:04.603305
++     Unrecognized key(s) in object: 'appDir' at "experimental"
+
+# 2026-02-13 04:46:05.090212
++ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+
+# 2026-02-13 04:58:39.597316
++ Next.js 16.1.6 (Turbopack)

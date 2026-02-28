@@ -40,14 +40,25 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def authenticate_user(session: Session, username: str, password: str) -> User:
     """Authenticate user by username or email and password"""
-    # Check both username and email fields
-    statement = select(User).where((User.username == username) | (User.email == username))
-    user = session.exec(statement).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if not verify_password(password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Incorrect password")
-    return user
+    print(f"DEBUG: Authenticating {username} in DB...")
+    try:
+        # Check both username and email fields
+        statement = select(User).where((User.username == username) | (User.email == username))
+        user = session.exec(statement).first()
+        if not user:
+            print(f"DEBUG: User {username} not found")
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        print(f"DEBUG: User {username} found, verifying password...")
+        if not verify_password(password, user.hashed_password):
+            print(f"DEBUG: Password verification failed for {username}")
+            raise HTTPException(status_code=401, detail="Incorrect password")
+            
+        print(f"DEBUG: Authentication successful for {username}")
+        return user
+    except Exception as e:
+        print(f"DEBUG: Exception during authenticate_user: {str(e)}")
+        raise e
 
 async def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
     """Get current authenticated user from JWT token"""

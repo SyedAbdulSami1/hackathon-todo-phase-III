@@ -57,18 +57,33 @@ def register(user: UserCreate, session: Session = Depends(get_session)):
 @router.post("/login", response_model=AuthResponse)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
     """Login user and return access token and user info"""
-    user = authenticate_user(session, form_data.username, form_data.password)
+    print(f"DEBUG: Attempting login for user: {form_data.username}")
+    try:
+        user = authenticate_user(session, form_data.username, form_data.password)
+        print(f"DEBUG: User {form_data.username} authenticated successfully")
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        token = create_access_token(
+            data={"sub": user.username}, expires_delta=access_token_expires
+        )
+        print(f"DEBUG: Token created for {form_data.username}")
 
-    return {
-        "user": user,
-        "token": token,
-        "token_type": "bearer"
-    }
+        return {
+            "user": user,
+            "token": token,
+            "token_type": "bearer"
+        }
+    except HTTPException as e:
+        print(f"DEBUG: HTTP Error during login: {e.detail}")
+        raise e
+    except Exception as e:
+        print(f"DEBUG: Unexpected error during login: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Login failed: {str(e)}"
+        )
 
 @router.get("/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(get_current_active_user)):

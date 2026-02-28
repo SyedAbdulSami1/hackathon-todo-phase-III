@@ -3,7 +3,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
-from main import app, get_chat_agent
+from index import app, get_chat_agent
 from starlette.routing import Route
 
 
@@ -105,7 +105,7 @@ def test_main_app_lifespan():
 
 def test_main_app_lifespan_with_mocked_agent():
     """Test the app lifespan with a mocked agent."""
-    with patch('main.AgentFactory') as mock_agent_factory:
+    with patch('index.AgentFactory') as mock_agent_factory:
         mock_agent = MagicMock()
         mock_agent_factory.create_default_agent.return_value = mock_agent
 

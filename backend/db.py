@@ -13,6 +13,13 @@ if not DATABASE_URL:
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+# Ensure SSL mode for Neon DB on Vercel if not specified
+if "neon.tech" in DATABASE_URL and "sslmode" not in DATABASE_URL:
+    if "?" in DATABASE_URL:
+        DATABASE_URL += "&sslmode=require"
+    else:
+        DATABASE_URL += "?sslmode=require"
+
 # Create SQLModel engine
 engine_params = {
     "echo": True,

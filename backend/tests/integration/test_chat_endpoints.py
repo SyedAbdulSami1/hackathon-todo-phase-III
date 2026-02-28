@@ -24,7 +24,7 @@ def test_post_chat_endpoint_success(test_client, sample_user, db_session):
         "tool_calls": [{"name": "test_tool", "args": {}, "result": {"success": True}}]
     })
 
-    with patch('main.get_chat_agent', return_value=mock_agent):
+    with patch('routers.chat.get_chat_agent', return_value=mock_agent):
         response = test_client.post(
             f"/api/{sample_user.id}/chat",
             json={"message": "Create a test task"},
@@ -151,7 +151,7 @@ def test_post_chat_endpoint_internal_error(test_client, sample_user, db_session)
     mock_agent = MagicMock()
     mock_agent.process_request = AsyncMock(side_effect=Exception("Internal error"))
 
-    with patch('main.get_chat_agent', return_value=mock_agent):
+    with patch('routers.chat.get_chat_agent', return_value=mock_agent):
         response = test_client.post(
             f"/api/{sample_user.id}/chat",
             json={"message": "Test message"},
@@ -172,7 +172,7 @@ def test_post_chat_endpoint_agent_not_initialized(test_client, sample_user, db_s
     db_session.commit()
 
     # Mock the chat agent to return None
-    with patch('main.get_chat_agent', return_value=None):
+    with patch('routers.chat.get_chat_agent', return_value=None):
         response = test_client.post(
             f"/api/{sample_user.id}/chat",
             json={"message": "Test message"},

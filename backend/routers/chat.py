@@ -19,6 +19,12 @@ except ImportError:
 
 from dependencies.auth import get_current_user
 
+def get_chat_agent():
+    """Get the global chat agent instance."""
+    # Import inside function to avoid circular dependency
+    from index import get_chat_agent as get_global_agent
+    return get_global_agent()
+
 router = APIRouter()
 
 @router.post("/{user_id}/chat", response_model=ChatResponse)
@@ -32,9 +38,6 @@ async def chat_endpoint(
     Process natural language input and return appropriate response.
     """
     try:
-        # Import inside function to avoid circular dependency
-        from main import get_chat_agent
-
         # Verify that the user_id in the path matches the authenticated user
         # user_id from path is string, current_user.id is int
         if str(current_user.id) != str(user_id):

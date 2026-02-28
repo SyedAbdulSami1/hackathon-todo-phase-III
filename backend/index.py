@@ -1,15 +1,28 @@
 import os
+import sys
 from dotenv import load_dotenv
+
+# Ensure the backend directory is in the Python path
+# This solves import issues on some environments like Vercel
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 # Load environment variables before importing other modules
 load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, tasks, chat
-from db import create_db_and_tables
 from contextlib import asynccontextmanager
-from agents.factory import AgentFactory
+try:
+    from routers import auth, tasks, chat
+    from db import create_db_and_tables
+    from agents.factory import AgentFactory
+except ImportError as e:
+    print(f"IMPORT ERROR in index.py: {str(e)}")
+    import traceback
+    traceback.print_exc()
+    raise e
 
 # Initialize the agent instance to be reused
 chat_agent = None

@@ -62,7 +62,7 @@ class ChatAgent:
         messages.append({"role": "user", "content": user_input})
 
         # Define tools for OpenAI (Requirement #8)
-        tools = self._get_tool_definitions()
+        tools = self.tools.get_tool_definitions()
 
         try:
             # 1. First call to OpenAI to get tool calls
@@ -135,80 +135,3 @@ class ChatAgent:
                 "tool_calls": [],
                 "actions_taken": ["Error handling"]
             }
-
-    def _get_tool_definitions(self):
-        """Standard tool definitions for OpenAI (Requirement #8)."""
-        return [
-            {
-                "type": "function",
-                "function": {
-                    "name": "add_task",
-                    "description": "Create a new task (Requirement #8.1)",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "title": {"type": "string"},
-                            "description": {"type": "string"}
-                        },
-                        "required": ["title"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "list_tasks",
-                    "description": "Retrieve tasks from the list (Requirement #8.2)",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "status": {"type": "string", "enum": ["all", "pending", "completed"]}
-                        }
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "complete_task",
-                    "description": "Mark a task as complete (Requirement #8.3)",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "task_id": {"type": "integer"}
-                        },
-                        "required": ["task_id"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "delete_task",
-                    "description": "Remove a task from the list (Requirement #8.4)",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "task_id": {"type": "integer"}
-                        },
-                        "required": ["task_id"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "update_task",
-                    "description": "Modify task title or description (Requirement #8.5)",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "task_id": {"type": "integer"},
-                            "title": {"type": "string"},
-                            "description": {"type": "string"}
-                        },
-                        "required": ["task_id"]
-                    }
-                }
-            }
-        ]

@@ -3,7 +3,8 @@ uvicorn[standard]>=0.24.0
 
 # AI and MCP SDKs
 openai>=1.12.0
-mcp>=0.1.0
+openai-agents>=0.0.1
+mcp[server]>=0.1.0
 
 # Database
 sqlmodel~=0.0.16

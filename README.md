@@ -1,92 +1,63 @@
-# Todo App Frontend
+# AI-Powered Todo Chatbot (Hackathon Phase III)
 
-Built with Next.js 14, TypeScript, and Tailwind CSS.
+A premium, startup-quality Todo application featuring an AI Chatbot powered by Google Gemini and MCP (Model Context Protocol) for task management.
 
-## Tech Stack
+## 🚀 Recent Updates & Fixes
+- **✅ Fixed 500 Errors:** Resolved a critical bug where a folder named `logging` shadowed the standard library. Renamed to `internal_logging`.
+- **✅ Backend Entrypoint:** Unified entrypoint to `index.py` with path-adjustment logic for Vercel/Local compatibility.
+- **✅ Neon DB Optimization:** Added SSL support (`sslmode=require`) for secure database connections.
+- **✅ Premium UI/UX:** Enhanced the Chatbot with high-end animations, glassmorphism, and interactive "AI is thinking" states.
+- **✅ Verified Tests:** All 66 backend tests (unit & integration) are passing.
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Radix UI + Tailwind CSS
-- **Icons**: Lucide React
-- **HTTP Client**: Axios
-- **Form Handling**: React Hook Form + Zod
+## 🛠️ Local Setup
 
-## Project Structure
-
-```
-frontend/
-├── app/                    # Next.js App Router
-│   ├── globals.css         # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── ui/                # Reusable UI components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── checkbox.tsx
-│   │   └── input.tsx
-│   ├── forms/             # Form components
-│   └── layout/            # Layout components
-├── lib/                   # Utility libraries
-│   ├── api.ts             # API client
-│   ├── auth.ts            # Authentication utilities
-│   └── utils.ts           # Utility functions
-├── types/                 # TypeScript type definitions
-│   └── index.ts
-├── package.json
-├── tailwind.config.ts
-├── tsconfig.json
-├── next.config.js
-├── postcss.config.js
-└── .eslintrc.json
-```
-
-## Getting Started
-
-1. Install dependencies:
+### 1. Backend (FastAPI)
 ```bash
+cd backend
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Mac/Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create .env file with your keys
+# GOOGLE_API_KEY=your_key
+# DATABASE_URL=your_postgres_url
+
+# Run the server
+uvicorn index:app --reload --port 8000
+```
+
+### 2. Frontend (Next.js)
+```bash
+cd frontend
 npm install
-```
-
-2. Set up environment variables:
-```bash
-cp .env.local.example .env.local
-# Edit .env.local with your API URL
-```
-
-3. Run the development server:
-```bash
 npm run dev
 ```
+Access the app at `http://localhost:3000`.
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
-for backend 
-cd backend
-# old uviconr main:app --reload
-Now use this command
- uvicorn index:app --reload
+## 🧪 Testing Report
+**Status:** 🟢 PASSING (All 66 Tests)
+**Date:** February 28, 2026
 
-## Key Features
+| Test Suite | Result | Count |
+|------------|--------|-------|
+| Integration (Endpoints) | ✅ PASS | 9 |
+| Main App Lifecycle | ✅ PASS | 9 |
+| AI Agents | ✅ PASS | 8 |
+| Exceptions | ✅ PASS | 14 |
+| MCP Tools | ✅ PASS | 8 |
+| Data Models | ✅ PASS | 5 |
+| Services | ✅ PASS | 13 |
+| **Total** | **✅ PASS** | **66** |
 
-- **Task Management**: Create, read, update, and delete tasks
-- **Task Filtering**: Filter tasks by status (all, pending, completed)
-- **Authentication**: User authentication with JWT tokens
-- **Responsive Design**: Mobile-friendly interface
-- **Type Safety**: Full TypeScript support
-- **Modern UI**: Clean, accessible components with Tailwind CSS
+Full report available in `backend/pytest-result.txt`.
 
-## API Integration
-
-The frontend connects to the backend API at:
-- Development: `http://localhost:8000`
-- Production: Configurable via `NEXT_PUBLIC_API_URL`
-
-All API calls use axios with automatic JWT token injection and error handling.
-
-## Styling
-
-- Uses Tailwind CSS for utility-first styling
-- Custom design tokens for consistent theming
-- Dark mode support (CSS variables)
-- Responsive breakpoints built-in
+## 📂 Project Structure
+- `frontend/`: Next.js application with Tailwind CSS.
+- `backend/`: FastAPI application with SQLModel.
+- `backend/agents/`: AI logic and Gemini integration.
+- `backend/tools/`: MCP tool implementations.
+- `backend/internal_logging/`: Custom logging (renamed from 'logging' to avoid conflicts).

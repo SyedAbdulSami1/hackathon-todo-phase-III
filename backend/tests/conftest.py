@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session
 from sqlmodel.pool import StaticPool
 
-from main import app
+from index import app
 from db import SQLModel, engine, get_session
 from models import User, Conversation, Message, SenderType
 from dependencies.auth import get_current_user

@@ -34,7 +34,7 @@ export const FloatingChat: React.FC<FloatingChatProps> = ({ user }) => {
       const assistantMsg = { role: 'assistant', content: response.response };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I&apos;m having trouble connecting right now." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble connecting to my brain right now. Please check if the backend is running!" }]);
     } finally {
       setLoading(false);
     }
@@ -46,56 +46,60 @@ export const FloatingChat: React.FC<FloatingChatProps> = ({ user }) => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-16 h-16 bg-[#1D1D1F] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group relative"
+          className="w-16 h-16 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-indigo-600 active:scale-95 transition-all duration-500 group relative"
         >
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 rounded-full animate-pulse border-2 border-white"></div>
-          <MessageCircle className="w-7 h-7" />
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-500 rounded-full animate-ping opacity-20"></div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 rounded-full border-2 border-white"></div>
+          <Bot className="w-8 h-8 group-hover:rotate-12 transition-transform duration-300" />
         </button>
       )}
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="w-[380px] h-[550px] apple-glass rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+        <div className="w-[400px] h-[600px] glass-card flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-500">
           {/* Header */}
-          <div className="p-6 bg-[#1D1D1F] text-white flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
+          <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg rotate-3">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-900"></div>
               </div>
               <div>
-                <h3 className="font-bold tracking-tight">AI Assistant</h3>
-                <div className="flex items-center text-[10px] text-indigo-300 font-bold uppercase tracking-widest">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5"></span>
-                  Online
-                </div>
+                <h3 className="text-lg font-black tracking-tight">TaskFlow AI</h3>
+                <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-[0.2em]">Neural Intelligence</p>
               </div>
             </div>
             <button 
               onClick={() => setIsOpen(false)}
-              className="p-2 hover:bg-white/10 rounded-full transition-all"
+              className="p-2 hover:bg-white/10 rounded-xl transition-all"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             {messages.length === 0 && (
-              <div className="text-center py-10 space-y-4">
-                <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
-                  <Sparkles className="w-8 h-8" />
+              <div className="text-center py-12 space-y-6 animate-in fade-in zoom-in duration-700">
+                <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto shadow-inner">
+                  <Bot className="w-10 h-10 animate-bounce" />
                 </div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest px-4">
-                  How can I help you manage your missions today, {user?.username}?
-                </p>
+                <div className="space-y-2">
+                  <h4 className="text-xl font-black text-slate-900">System Online</h4>
+                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest px-8 leading-relaxed">
+                    Welcome, {user?.username}. I&apos;m ready to optimize your productivity.
+                  </p>
+                </div>
               </div>
             )}
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-4 rounded-[1.5rem] font-medium text-sm ${
+                <div className={`max-w-[85%] p-5 rounded-[1.8rem] text-sm leading-relaxed shadow-sm ${
                   m.role === 'user' 
-                    ? 'bg-indigo-600 text-white rounded-tr-none' 
-                    : 'bg-white border border-slate-100 text-[#1D1D1F] rounded-tl-none shadow-sm'
+                    ? 'bg-slate-900 text-white rounded-tr-none font-bold' 
+                    : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none font-medium'
                 }`}>
                   {m.content}
                 </div>
@@ -103,8 +107,10 @@ export const FloatingChat: React.FC<FloatingChatProps> = ({ user }) => {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white border border-slate-100 p-4 rounded-[1.5rem] rounded-tl-none shadow-sm">
-                  <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+                <div className="bg-white border border-slate-100 p-5 rounded-[1.8rem] rounded-tl-none shadow-sm flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                 </div>
               </div>
             )}
